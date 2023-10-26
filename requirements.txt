@@ -1,0 +1,5 @@
+asyncio
+aioodbc
+nicegui
+xmltodict
+nicegui[highcharts]
