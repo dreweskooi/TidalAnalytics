@@ -11017,7 +11017,7 @@ select jobmst_id, jobrun_id, job from
         <queryname>JobactivityInError</queryname>
         <category>hidden</category>
         <linkquery></linkquery><querydescription></querydescription>
-        <db>reporting</db>
+        <db>admiral</db>
         <chartfields></chartfields>
         <querytext_sqlserver>
             <![CDATA[

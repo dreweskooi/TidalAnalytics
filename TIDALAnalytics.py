@@ -69,21 +69,83 @@ with open('queries.xml', 'r', encoding='utf-8') as file:
         outfile.write(json_object)    
     """
     # Writing to sample.json
+def pagelayout():
+    with ui.header(elevated=True).style('background-color: primary').classes('items-center justify-between'):
+        with ui.row():
+            ui.label('SYNERTECH TIDAL ANALYTICS').classes('text-2xl')
+            with ui.button(text='Select Master'):    
+                with ui.menu() as menu:
+                    ui.menu_item('JobAudit', lambda: ui.open('/queries/JobAudit'))
+                    ui.menu_item('ActionAudit', lambda: ui.open('/queries/ActionAudit'))
+                    ui.menu_item('AlertAudit', lambda: ui.open('/queries/AlertAudit'))
+            with ui.button(text='Job Activity'):    
+                with ui.menu() as menu:
+                    ui.menu_item('Job Activity', lambda: ui.open('/queries/715JobActivityNG'))
+                    ui.menu_item('Job Activity in Error', lambda: ui.open('/queries/JobactivityInError'))
+
+            with ui.button(icon='menu',text='Admin'):    
+                with ui.menu() as menu:
+                    category = 'Analysis'
+                    ui.menu_item('Menu item 1', lambda: ui.link('',''))
+                    ui.menu_item('Menu item 2', lambda: ui.link('',''))
+                    with ui.button(icon='menu',text='SubAdmin'):                    
+                        with ui.menu() as menu:
+                            ui.menu_item('SubMenu item 1', lambda: lambda: ui.link('',''))
+                            ui.menu_item('SubMenu item 2', lambda: lambda: ui.link('',''))
+
+                    ui.menu_item('Menu item 3 (keep open)',
+                                    lambda: result.set_text('Selected item 3'), auto_close=False)
+                    ui.separator()
+                    ui.menu_item('Close', on_click=menu.close)
+            with ui.button(icon='menu',text='Audit'):    
+                with ui.menu() as menu:
+                    ui.menu_item('JobAudit', lambda: ui.open('/queries/JobAudit'))
+                    ui.menu_item('ActionAudit', lambda: ui.open('/queries/ActionAudit'))
+                    ui.menu_item('AlertAudit', lambda: ui.open('/queries/AlertAudit'))
+                    with ui.button(icon='menu',text='SubAdmin'):                    
+                        with ui.menu() as menu:
+                            ui.menu_item('SubMenu item 1', lambda: lambda: ui.link('',''))
+                            ui.menu_item('SubMenu item 2', lambda: lambda: ui.link('',''))
+
+                    ui.menu_item('Menu item 2', lambda: ui.link('',''))
+                    with ui.menu() as menu:
+                        ui.menu_item('SubMenu item 1', lambda: lambda: ui.link('',''))
+                        ui.menu_item('SubMenu item 2', lambda: lambda: ui.link('',''))
+
+                    ui.menu_item('Menu item 3 (keep open)',
+                                    lambda: result.set_text('Selected item 3'), auto_close=False)
+                    ui.separator()
+                    ui.menu_item('Close', on_click=menu.close)
 
 @ui.page('/')
-def page_layout():
+def index():
+    pagelayout()
+
+@ui.page('/queries/{queryname}')
+def queries(queryname):
+    pagelayout()
     rows=[]
     def update_query_list():
         app.storage.user['category'] = sel_category.value
         sel_query.options = sorted(set([i['queryname']  for i in query_dict['queries']['query'] if i['category'] == sel_category.value and i['db'].lower() in ['admiral','reporting']]))
         sel_query.update()
+        #grid.options['rowdata']=None
+        #grid.options['columndefs']=None
+        #grid.update()
 
     def update_parameters_table():
-        app.storage.user['query'] = sel_query.value
+        if not 'parameter_table' in locals():
+            return
+        #if not 'grid' in locals():
+        #    return
+        #grid.options['columndefs']=None
+        #grid.options['rowdata']=None
+        #grid.update()
         with parameter_table:
                 parameter_table.clear()
                 with ui.row():
                     if sel_query.value:
+                        app.storage.user['query'] = sel_query.value
                         sqltext=[i['querytext_sqlserver']  for i in query_dict['queries']['query'] if i['queryname'] == sel_query.value][0]
                         sqltext = sql_expand_inherited_parameters(sqltext=sqltext)
                         matches = set(re.findall(r'<<.*?>>', sqltext))
@@ -125,44 +187,6 @@ def page_layout():
                                 params[m] = ui.input(label=parmname,value=defaultvalue, placeholder='')                    
 
     
-    """
-    def show_parameters():
-        sqltext=''
-        ui.label("Parameters")
-        if sel_query.value:
-            sqltext=[i['querytext_sqlserver']  for i in query_dict['queries']['query'] if i['queryname'] == sel_query.value][0]
-            matches = set(re.findall(r'<<.*?>>', sqltext))
-            
-            
-            parms_list = set()
-            for m in sorted(matches):
-                defaultvalue=''
-                parmname= m.lstrip('<<').rstrip('>>').split(':')[0]
-                if ':' in m.lstrip('<<').rstrip('>>'):
-                    defaultvalue=m.lstrip('<<').rstrip('>>').split(':')[1]
-                if parmname.lower() == 'from_date':
-                    #parms_list[parmname] = ui.input(label='From date', placeholder='from_date')
-                    with ui.input('From Date') as from_date:
-                        with from_date.add_slot('append'):
-                            ui.icon('edit_calendar').on('click', lambda: menu.open()).classes('cursor-pointer')
-                        with ui.menu() as menu:
-                            ui.date().bind_value(from_date)                    
-                    params[parmname]= from_date
-                    #ui.date(value='2023-09-01', on_change=lambda e: parms_list[parmname].set_value(e.value))
-                elif parmname.lower() == 'to_date':
-                    with ui.input('To Date') as to_date:
-                        with to_date.add_slot('append'):
-                            ui.icon('edit_calendar').on('click', lambda: menu.open()).classes('cursor-pointer')
-                        with ui.menu() as menu:
-                            ui.date().bind_value(to_date)                    
-                    params[parmname]= to_date
-                else:
-                    params[parmname] = ui.input(label=parmname,value=defaultvalue, placeholder='')                    
-
-                
-            #sql_text.text=sql_text
-    
-    """
     async def getData():
         #expansion.close()
         grid_expansion.open()
@@ -184,7 +208,7 @@ def page_layout():
                 result = await connect_db(db=db, sql=sqltext)  
                 end = timer()
                 elapse_time= end - start
-                lbl_elapsetime.text=elapse_time
+                lbl_elapsetime.text=f"{elapse_time:.03f} secs."
                 rows = []
                 if len(result) >0:
                     columns = [column[0] for column in result[0].cursor_description]             
@@ -281,11 +305,21 @@ def page_layout():
             else:
                 params[parmname] = ui.input(label=parmname,value=defaultvalue, placeholder='')                    
             """
+    def handleRowSelectedion(event):
+        if event.args['colId']=='jobmst_id':
+            with ui.dialog() as dialog , ui.card():
+                with ui.grid(columns=4):
+                    for r in event.args['data']:
+                        ui.label(r).style('background-color: primary')
+                        ui.label(event.args['data'][r])
+            dialog.open()
+        #print(event)
 
     def set_category_query(cat,query):
         pass
 
-
+    """
+    
     with ui.header(elevated=True).style('background-color: #3874c8').classes('items-center justify-between'):
         ui.label('SYNERTECH TIDAL ANALYTICS').classes('text-2xl')
     with ui.row():
@@ -315,62 +349,56 @@ def page_layout():
                                 lambda: result.set_text('Selected item 3'), auto_close=False)
                 ui.separator()
                 ui.menu_item('Close', on_click=menu.close)
+    with ui.header(elevated=True).style('background-color: #3874c8').classes('items-center justify-between'):
+        ui.label('SYNERTECH TIDAL ANALYTICS').classes('text-2xl')
+    with ui.row():
+        with ui.button(icon='menu',text='Admin'):    
+            with ui.menu() as menu:
+                category = 'Analysis'
+                ui.menu_item('Menu item 1', lambda: ui.link('',''))
+                ui.menu_item('Menu item 2', lambda: ui.link('',''))
+                with ui.menu() as menu:
+                    ui.menu_item('SubMenu item 1', lambda: lambda: ui.link('',''))
+                    ui.menu_item('SubMenu item 2', lambda: lambda: ui.link('',''))
 
+                ui.menu_item('Menu item 3 (keep open)',
+                                lambda: result.set_text('Selected item 3'), auto_close=False)
+                ui.separator()
+                ui.menu_item('Close', on_click=menu.close)
+        with ui.button(icon='menu',text='Audit'):    
+            with ui.menu() as menu:
+                category = 'Analysis'
+                ui.menu_item('Menu item 1', lambda: ui.link('',''))
+                ui.menu_item('Menu item 2', lambda: ui.link('',''))
+                with ui.menu() as menu:
+                    ui.menu_item('SubMenu item 1', lambda: lambda: ui.link('',''))
+                    ui.menu_item('SubMenu item 2', lambda: lambda: ui.link('',''))
+
+                ui.menu_item('Menu item 3 (keep open)',
+                                lambda: result.set_text('Selected item 3'), auto_close=False)
+                ui.separator()
+                ui.menu_item('Close', on_click=menu.close)
+"""
         #ui.button(on_click=lambda: right_drawer.toggle(), icon='menu').props('flat color=white')
     #with ui.left_drawer(top_corner=False, bottom_corner=False).style('background-color: #d7e3f4').classes('w-96'):
+    if queryname != None:
+        app.storage.user['query'] = queryname
+        ui.open('/queries')
     params ={}
     rows=[]
     cols=[]
-    with ui.expansion("Selection criteria",value=True).classes('w-full') as expansion:
-        with ui.label('Select Query'):
-            with ui.row():
-                sel_category = ui.select(label='Select Query Category',value=app.storage.user.get('category',None) ,options=category_list,on_change=lambda: update_query_list()).style('width:200px')
-                sel_query = ui.select(label='Select Query',value=app.storage.user.get('query',None),options=sorted(set([i['queryname']  for i in query_dict['queries']['query'] if i['category'] == sel_category.value and i.get('templatetype','') !='jinja' and i['db'].lower() in ['admiral','reporting']])), on_change=update_parameters_table)
-
-                #ui.separator()
-                parameter_table = ui.grid()
-                if sel_query.value:
-                    update_parameters_table()
-                """
-                parameter_table.clear()
-                with parameter_table:
-                    if sel_query.value:
-                        sqltext=[i['querytext_sqlserver']  for i in query_dict['queries']['query'] if i['queryname'] == sel_query.value][0]
-                        matches = set(re.findall(r'<<.*?>>', sqltext))
-                        
-                        params ={}
-                        parms_list = set()
-                        for m in sorted(matches):
-                            ui.row()
-                            defaultvalue=''
-                            parmname= m.lstrip('<<').rstrip('>>').split(':')[0]
-                            if ':' in m.lstrip('<<').rstrip('>>'):
-                                defaultvalue=m.lstrip('<<').rstrip('>>').split(':')[1]
-                            if parmname.lower() == 'from_date':
-                                #parms_list[parmname] = ui.input(label='From date', placeholder='from_date')
-                                with ui.input('From Date') as from_date:
-                                    with from_date.add_slot('append'):
-                                        ui.icon('edit_calendar').on('click', lambda: menu.open()).classes('cursor-pointer')
-                                    with ui.menu() as menu:
-                                        ui.date().bind_value(from_date)                    
-                                params[parmname]= to_date
-                                #ui.date(value='2023-09-01', on_change=lambda e: parms_list[parmname].set_value(e.value))
-                            elif parmname.lower() == 'to_date':
-                                with ui.input('To Date') as to_date:
-                                    with to_date.add_slot('append'):
-                                        ui.icon('edit_calendar').on('click', lambda: menu.open()).classes('cursor-pointer')
-                                    with ui.menu() as menu:
-                                        ui.date().bind_value(to_date)                    
-                                params[parmname]= to_date
-                            else:
-                                params[parmname] = ui.input(label=parmname,value=defaultvalue, placeholder='')                    
-                """
+    with ui.expansion("Selection Query",value=True).classes('w-full') as expansion:
         with ui.row():
-            qry_button=ui.button('Get DATA', on_click=getData)
-            lbl_elapsetime = ui.label()
+            qry_button=ui.button('Get Data',icon='list', on_click=getData)
+            lbl_elapsetime = ui.label().style('width:100px')
+            sel_category = ui.select(label='Select Query Category',value=app.storage.user.get('category',None) ,options=category_list,on_change=lambda: update_query_list()).style('width:200px')
+            sel_query = ui.select(label='Select Query',value=app.storage.user.get('query',None),options=sorted(set([i['queryname']  for i in query_dict['queries']['query'] if i.get('templatetype','') !='jinja' and i['db'].lower() in ['admiral','reporting']])), on_change=update_parameters_table)
+            #ui.separator()
+            parameter_table = ui.grid()
+            if sel_query.value:
+                update_parameters_table()
     with ui.expansion("Query data").classes('w-full') as grid_expansion:
-        
-        grid = ui.aggrid({
+        with ui.aggrid({
         'defaultColDef': {'resizable': True},
         'pagination': True,
         'paginationPageSize': 50,        
@@ -378,8 +406,14 @@ def page_layout():
             ],
             'rowData': [
             ],
-        'rowSelection': 'multiple',
-        },auto_size_columns=False).style('height: 500px')
+        'rowSelection': 'single',
+        },auto_size_columns=False).style('height: 500px').on('cellClicked', lambda event: handleRowSelectedion(event=event)) as grid:
+            with ui.context_menu() as cm1:
+                ui.menu_item('Flip horizontally')
+                ui.menu_item('Flip vertically')
+                ui.separator()
+                ui.menu_item('Reset')
+
         ui.button('AutoSize Columns', on_click=lambda: grid.call_column_api_method('autoSizeAllColumns'))
         #.classes('max-height ag-theme-alpine max-h-400')
         #.classes('max-width max-height ag-theme-alpine max-h-400')
@@ -468,6 +502,5 @@ def page_layout():
     with ui.footer().style('background-color: #3874c8'):
         ui.label('SYNERTECH TIDAL ANALYTICS')
 
-ui.link('show page with fancy layout', page_layout)
 
 ui.run(port=7777, reload=False, storage_secret='synertech')
