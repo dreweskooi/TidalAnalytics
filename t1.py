@@ -1,8 +1,10 @@
+from nicegui import ui
 import asyncio
 import aioodbc
 loop = asyncio.get_event_loop()
 dsn = 'Driver=ODBC Driver 17 for SQL Server;Server=localhost,1433;Database=Admiral;uid=sa;pwd=kooi'
-
+s = ui.state('drewes')
+ui.l
 async def connect_db(sql):
     conn = await aioodbc.connect(dsn=dsn)
     cur = await conn.cursor()

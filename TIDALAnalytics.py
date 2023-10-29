@@ -124,7 +124,17 @@ def index():
 @ui.page('/queries/{queryname}')
 def queries(queryname):
     pagelayout()
-    rows=[]
+    """
+    content = {'Query and Selection': '', 'Results': 'Content 2', 'Chart': 'Content 3'}
+    with ui.tabs() as tabs:
+        for title in content:
+            ui.tab(title)
+    with ui.tab_panels(tabs).classes('w-full') as panels:
+        for title, text in content.items():
+            with ui.tab_panel(title):
+                ui.label(text)
+
+    """
     def update_query_list():
         app.storage.user['category'] = sel_category.value
         sel_query.options = sorted(set([i['queryname']  for i in query_dict['queries']['query'] if i['category'] == sel_category.value and i['db'].lower() in ['admiral','reporting']]))
@@ -186,7 +196,6 @@ def queries(queryname):
 
                                 params[m] = ui.input(label=parmname,value=defaultvalue, placeholder='')                    
 
-    
     async def getData():
         #expansion.close()
         grid_expansion.open()
@@ -208,7 +217,9 @@ def queries(queryname):
                 result = await connect_db(db=db, sql=sqltext)  
                 end = timer()
                 elapse_time= end - start
-                lbl_elapsetime.text=f"{elapse_time:.03f} secs."
+                lbl_elapsetime.text=f"{elapse_time:.01f} secs,"
+                lbl_rows.text = f"{len(result)} rows."
+                
                 rows = []
                 if len(result) >0:
                     columns = [column[0] for column in result[0].cursor_description]             
@@ -224,14 +235,14 @@ def queries(queryname):
             #cols = rows[0]._fields if len(rows) > 0 else []
             columnDefs = []
             for col in columns:
-                columnDefs.append({'headerName': col, 'field': col, 'sortable': 'true', 'width':150,'filter': 'agSetColumnFilter'} )
+                columnDefs.append({'headerName': col, 'field': col, 'sortable': 'true', 'width':150, 'filter': 'agTextColumnFilter', 'floatingFilter': False} )
             grid.options['columnDefs'] =columnDefs
             grid.options['rowData'] = rows
             grid.update()
+            cols=columns
             x_axis.options=list(cols)
             y1_axis.options=list(cols)
             seriesdata.options=list(cols)
-
         else:
             cols = []
             columnDefs = []
@@ -254,7 +265,6 @@ def queries(queryname):
         
         return 
     
-
     def get_parameters(queryname):
         params ={}
         if queryname:
@@ -318,67 +328,6 @@ def queries(queryname):
     def set_category_query(cat,query):
         pass
 
-    """
-    
-    with ui.header(elevated=True).style('background-color: #3874c8').classes('items-center justify-between'):
-        ui.label('SYNERTECH TIDAL ANALYTICS').classes('text-2xl')
-    with ui.row():
-        with ui.button(icon='menu',text='Admin'):    
-            with ui.menu() as menu:
-                category = 'Analysis'
-                ui.menu_item('Menu item 1', lambda: ui.link('',''))
-                ui.menu_item('Menu item 2', lambda: ui.link('',''))
-                with ui.menu() as menu:
-                    ui.menu_item('SubMenu item 1', lambda: lambda: ui.link('',''))
-                    ui.menu_item('SubMenu item 2', lambda: lambda: ui.link('',''))
-
-                ui.menu_item('Menu item 3 (keep open)',
-                                lambda: result.set_text('Selected item 3'), auto_close=False)
-                ui.separator()
-                ui.menu_item('Close', on_click=menu.close)
-        with ui.button(icon='menu',text='Audit'):    
-            with ui.menu() as menu:
-                category = 'Analysis'
-                ui.menu_item('Menu item 1', lambda: ui.link('',''))
-                ui.menu_item('Menu item 2', lambda: ui.link('',''))
-                with ui.menu() as menu:
-                    ui.menu_item('SubMenu item 1', lambda: lambda: ui.link('',''))
-                    ui.menu_item('SubMenu item 2', lambda: lambda: ui.link('',''))
-
-                ui.menu_item('Menu item 3 (keep open)',
-                                lambda: result.set_text('Selected item 3'), auto_close=False)
-                ui.separator()
-                ui.menu_item('Close', on_click=menu.close)
-    with ui.header(elevated=True).style('background-color: #3874c8').classes('items-center justify-between'):
-        ui.label('SYNERTECH TIDAL ANALYTICS').classes('text-2xl')
-    with ui.row():
-        with ui.button(icon='menu',text='Admin'):    
-            with ui.menu() as menu:
-                category = 'Analysis'
-                ui.menu_item('Menu item 1', lambda: ui.link('',''))
-                ui.menu_item('Menu item 2', lambda: ui.link('',''))
-                with ui.menu() as menu:
-                    ui.menu_item('SubMenu item 1', lambda: lambda: ui.link('',''))
-                    ui.menu_item('SubMenu item 2', lambda: lambda: ui.link('',''))
-
-                ui.menu_item('Menu item 3 (keep open)',
-                                lambda: result.set_text('Selected item 3'), auto_close=False)
-                ui.separator()
-                ui.menu_item('Close', on_click=menu.close)
-        with ui.button(icon='menu',text='Audit'):    
-            with ui.menu() as menu:
-                category = 'Analysis'
-                ui.menu_item('Menu item 1', lambda: ui.link('',''))
-                ui.menu_item('Menu item 2', lambda: ui.link('',''))
-                with ui.menu() as menu:
-                    ui.menu_item('SubMenu item 1', lambda: lambda: ui.link('',''))
-                    ui.menu_item('SubMenu item 2', lambda: lambda: ui.link('',''))
-
-                ui.menu_item('Menu item 3 (keep open)',
-                                lambda: result.set_text('Selected item 3'), auto_close=False)
-                ui.separator()
-                ui.menu_item('Close', on_click=menu.close)
-"""
         #ui.button(on_click=lambda: right_drawer.toggle(), icon='menu').props('flat color=white')
     #with ui.left_drawer(top_corner=False, bottom_corner=False).style('background-color: #d7e3f4').classes('w-96'):
     if queryname != None:
@@ -388,38 +337,33 @@ def queries(queryname):
     rows=[]
     cols=[]
     with ui.expansion("Selection Query",value=True).classes('w-full') as expansion:
-        with ui.row():
+        with ui.row() as query_row:
             qry_button=ui.button('Get Data',icon='list', on_click=getData)
-            lbl_elapsetime = ui.label().style('width:100px')
             sel_category = ui.select(label='Select Query Category',value=app.storage.user.get('category',None) ,options=category_list,on_change=lambda: update_query_list()).style('width:200px')
             sel_query = ui.select(label='Select Query',value=app.storage.user.get('query',None),options=sorted(set([i['queryname']  for i in query_dict['queries']['query'] if i.get('templatetype','') !='jinja' and i['db'].lower() in ['admiral','reporting']])), on_change=update_parameters_table)
             #ui.separator()
             parameter_table = ui.grid()
             if sel_query.value:
                 update_parameters_table()
+            lbl_elapsetime = ui.label()
+            lbl_rows = ui.label()
     with ui.expansion("Query data").classes('w-full') as grid_expansion:
         with ui.aggrid({
         'defaultColDef': {'resizable': True},
-        'pagination': True,
-        'paginationPageSize': 50,        
+        'pagination': False,
+        'paginationPageSize': 100,        
         'columnDefs': [
             ],
             'rowData': [
             ],
         'rowSelection': 'single',
-        },auto_size_columns=False).style('height: 500px').on('cellClicked', lambda event: handleRowSelectedion(event=event)) as grid:
+        },auto_size_columns=False).style('height: 500px').on('cellClicked', lambda event: handleRowSelectedion(event=event)).on('firstDataRendered', lambda: grid.call_column_api_method('autoSizeAllColumns')) as grid:
             with ui.context_menu() as cm1:
                 ui.menu_item('Flip horizontally')
                 ui.menu_item('Flip vertically')
                 ui.separator()
                 ui.menu_item('Reset')
-
-        ui.button('AutoSize Columns', on_click=lambda: grid.call_column_api_method('autoSizeAllColumns'))
-        #.classes('max-height ag-theme-alpine max-h-400')
-        #.classes('max-width max-height ag-theme-alpine max-h-400')
-
-        #.classes('max-width max-height ag-theme-alpine max-h-400').style('flex: 1') 
-    #
+        #ui.button('AutoSize Columns', on_click=lambda: grid.call_column_api_method('autoSizeAllColumns'))
     with ui.expansion("Chart").classes('w-full') as chart_expansion:        
         with ui.row():
             x_axis =  ui.select(list(cols), label='Select X axis ').style('width:200px')
@@ -443,7 +387,8 @@ def queries(queryname):
             if x_axis.value == None or y1_axis.value==None:
                 ui.notify("Select x and y axis!")
                 return
-            series= set([row[seriesdata.value] for row in rows])
+            if seriesdata.value:
+                series= set([row[seriesdata.value] for row in rows])
             x1 = sorted(list(set([i[x_axis.value ] or '' for i in rows])))
             groups=[sorted(list(set([i[y1_axis.value ] or '' for i in rows])))]
             y =[]
@@ -478,27 +423,6 @@ def queries(queryname):
                 #ui.json_editor({'content': {'json': json1}},  on_change=lambda e: ui.notify(f'Change: {e}'))                
 
         ui.button('Update Chart', on_click=update)
-
-    """
-    with ui.right_drawer(fixed=False).style('background-color: #ebf1fa').props('bordered') as right_drawer:
-        ui.label('Selection Criteria')
-        cbdates = ui.checkbox('Select From/To date')
-        from_date = ui.input(label='From date', placeholder='From date')
-        ui.date(value='2023-09-01', on_change=lambda e: from_date.set_value(e.value)).bind_visibility_from(cbdates, 'value')
-        #from_date = ui.label('From date')
-        to_date = ui.input(label='To date', placeholder='From date')
-        ui.date(value='2023-09-01', on_change=lambda e: to_date.set_value(e.value)).bind_visibility_from(cbdates, 'value')
-        status_grid = ui.aggrid({
-        'defaultColDef': {'flex': 1},
-        'checkboxSelection': True,
-
-            'columnDefs': [
-        {'headerName': 'Status', 'field': 'status',"checkboxSelection": True, "headerCheckboxSelection": True},
-    ],
-    'rowData': [{'status': x} for x in sorted(job_status_list)],
-    'rowSelection': 'multiple',
-}).classes('max-h-80')
-    """
     with ui.footer().style('background-color: #3874c8'):
         ui.label('SYNERTECH TIDAL ANALYTICS')
 
