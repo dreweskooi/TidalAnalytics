@@ -69,6 +69,8 @@ with open('queries.xml', 'r', encoding='utf-8') as file:
         outfile.write(json_object)    
     """
     # Writing to sample.json
+def showe(e):
+    print(e)
 def pagelayout():
     with ui.header(elevated=True).style('background-color: primary').classes('items-center justify-between'):
         with ui.row():
@@ -78,51 +80,35 @@ def pagelayout():
                     ui.menu_item('JobAudit', lambda: ui.open('/queries/JobAudit'))
                     ui.menu_item('ActionAudit', lambda: ui.open('/queries/ActionAudit'))
                     ui.menu_item('AlertAudit', lambda: ui.open('/queries/AlertAudit'))
-            with ui.button(text='Job Activity'):    
+            with ui.button(text='Audit'):    
                 with ui.menu() as menu:
-                    ui.menu_item('Job Activity', lambda: ui.open('/queries/715JobActivityNG'))
-                    ui.menu_item('Job Activity in Error', lambda: ui.open('/queries/JobactivityInError'))
-
-            with ui.button(icon='menu',text='Admin'):    
+                    for q in query_dict['queries']['query']:
+                        if q['category']=='audit':
+                            ui.menu_item(q['queryname'], on_click= lambda q = q : ui.open(f'/queries/{q["queryname"]}'))
+                            #ui.menu_item('Job Activity in Error', lambda: ui.open('/queries/JobactivityInError'))
+            with ui.button(icon='menu',text='Analysis'):    
                 with ui.menu() as menu:
-                    category = 'Analysis'
-                    ui.menu_item('Menu item 1', lambda: ui.link('',''))
-                    ui.menu_item('Menu item 2', lambda: ui.link('',''))
-                    with ui.button(icon='menu',text='SubAdmin'):                    
-                        with ui.menu() as menu:
-                            ui.menu_item('SubMenu item 1', lambda: lambda: ui.link('',''))
-                            ui.menu_item('SubMenu item 2', lambda: lambda: ui.link('',''))
-
-                    ui.menu_item('Menu item 3 (keep open)',
-                                    lambda: result.set_text('Selected item 3'), auto_close=False)
-                    ui.separator()
-                    ui.menu_item('Close', on_click=menu.close)
+                    for q in query_dict['queries']['query']:
+                        if q['category'].lower()=='analysis':
+                            with ui.element():
+                                ui.menu_item(q['queryname'], on_click=lambda q = q : ui.open(f'/queries/{q["queryname"]}'))
             with ui.button(icon='menu',text='Audit'):    
                 with ui.menu() as menu:
-                    ui.menu_item('JobAudit', lambda: ui.open('/queries/JobAudit'))
-                    ui.menu_item('ActionAudit', lambda: ui.open('/queries/ActionAudit'))
-                    ui.menu_item('AlertAudit', lambda: ui.open('/queries/AlertAudit'))
+                    for q in query_dict['queries']['query']:
+                        if q['category']=='audit':
+                            ui.menu_item(q['queryname'], lambda q=q: ui.open(f'/queries/{q["queryname"]}'))
                     with ui.button(icon='menu',text='SubAdmin'):                    
                         with ui.menu() as menu:
                             ui.menu_item('SubMenu item 1', lambda: lambda: ui.link('',''))
                             ui.menu_item('SubMenu item 2', lambda: lambda: ui.link('',''))
-
-                    ui.menu_item('Menu item 2', lambda: ui.link('',''))
-                    with ui.menu() as menu:
-                        ui.menu_item('SubMenu item 1', lambda: lambda: ui.link('',''))
-                        ui.menu_item('SubMenu item 2', lambda: lambda: ui.link('',''))
-
-                    ui.menu_item('Menu item 3 (keep open)',
-                                    lambda: result.set_text('Selected item 3'), auto_close=False)
-                    ui.separator()
-                    ui.menu_item('Close', on_click=menu.close)
 
 @ui.page('/')
 def index():
     pagelayout()
 
 @ui.page('/queries/{queryname}')
-def queries(queryname):
+async def queries(queryname):
+    #print(queryname)
     pagelayout()
     """
     content = {'Query and Selection': '', 'Results': 'Content 2', 'Chart': 'Content 3'}
@@ -199,7 +185,7 @@ def queries(queryname):
     async def getData():
         #expansion.close()
         grid_expansion.open()
-        expansion.update()
+        #expansion.update()
         grid_expansion.update()
         grid.options['rowData']=None
         grid.update()
@@ -217,9 +203,7 @@ def queries(queryname):
                 result = await connect_db(db=db, sql=sqltext)  
                 end = timer()
                 elapse_time= end - start
-                lbl_elapsetime.text=f"{elapse_time:.01f} secs,"
-                lbl_rows.text = f"{len(result)} rows."
-                
+                ui.notify(f"{elapse_time:.01f} secs,{len(result)} rows.")
                 rows = []
                 if len(result) >0:
                     columns = [column[0] for column in result[0].cursor_description]             
@@ -325,7 +309,7 @@ def queries(queryname):
             dialog.open()
         #print(event)
 
-    def set_category_query(cat,query):
+    async def set_category_query(cat,query):
         pass
 
         #ui.button(on_click=lambda: right_drawer.toggle(), icon='menu').props('flat color=white')
@@ -336,17 +320,18 @@ def queries(queryname):
     params ={}
     rows=[]
     cols=[]
-    with ui.expansion("Selection Query",value=True).classes('w-full') as expansion:
-        with ui.row() as query_row:
-            qry_button=ui.button('Get Data',icon='list', on_click=getData)
-            sel_category = ui.select(label='Select Query Category',value=app.storage.user.get('category',None) ,options=category_list,on_change=lambda: update_query_list()).style('width:200px')
-            sel_query = ui.select(label='Select Query',value=app.storage.user.get('query',None),options=sorted(set([i['queryname']  for i in query_dict['queries']['query'] if i.get('templatetype','') !='jinja' and i['db'].lower() in ['admiral','reporting']])), on_change=update_parameters_table)
-            #ui.separator()
-            parameter_table = ui.grid()
-            if sel_query.value:
-                update_parameters_table()
-            lbl_elapsetime = ui.label()
-            lbl_rows = ui.label()
+    #with ui.expansion("Selection Query",value=True).classes('w-full') as expansion:
+    #    pass
+    with ui.row() as query_row:
+        qry_button=ui.button('Get Data', on_click=getData)
+        sel_category = ui.select(label='Select Query Category',value=app.storage.user.get('category',None) ,options=category_list,on_change=lambda: update_query_list()).style('width:100px')
+        sel_query = ui.select(label='Select Query',value=app.storage.user.get('query',None),options=sorted(set([i['queryname']  for i in query_dict['queries']['query'] if i.get('templatetype','') !='jinja' and i['db'].lower() in ['admiral','reporting']])), on_change=update_parameters_table)
+        #ui.separator()
+        parameter_table = ui.grid()
+        if sel_query.value:
+            update_parameters_table()
+        lbl_elapsetime = ui.label()
+        lbl_rows = ui.label()
     with ui.expansion("Query data").classes('w-full') as grid_expansion:
         with ui.aggrid({
         'defaultColDef': {'resizable': True},
@@ -425,6 +410,9 @@ def queries(queryname):
         ui.button('Update Chart', on_click=update)
     with ui.footer().style('background-color: #3874c8'):
         ui.label('SYNERTECH TIDAL ANALYTICS')
+
+    if queryname!='':
+        await getData()
 
 
 ui.run(port=7777, reload=False, storage_secret='synertech')
