@@ -6732,7 +6732,7 @@ and jobdata.version  = 0
 and (jobrun_id like '<<jobrun_id:0>>' or '0' like '<<jobrun_id:0>>')  
 and jobname like '<<job_name:%>><<%>>'
 and (JOBRUN_STATUS_SUMMARY.jobmst_id like '<<jobmst_id:0>>' or '0' like '<<jobmst_id:0>>')
-and proddt between '<<from_date:%>>' and '<<to_date:%>> 23:59:59'
+and proddt between '<<from_date>>' and '<<to_date>> 23:59:59'
 --and  not Launched is null
 order by jobmst_id
 
@@ -8341,7 +8341,7 @@ ORDER BY jobrun_id,
         <linkquery></linkquery><querydescription></querydescription>
         <querytext_sqlserver>
             <![CDATA[
-     SELECT     msglog.msglog_crtdt, msglog.msglog_text, jobname, jobgroup, msglog.nodmst_name, msglog.usrmst_name , jobmst_desc
+     SELECT msglog.msglog_crtdt, replace(msglog.msglog_text,'{','\{'), jobname, jobgroup, msglog.nodmst_name, msglog.usrmst_name , jobmst_desc
      --, msglog.msglog_category, msglog.msglog_source , msglog_type
       FROM         msglog , jobdata
       WHERE     msglog.msglog_category in (10,33) and msglog.msglog_source=2 and msglog.msglog_subcategory in (2,3,4) and
@@ -8375,6 +8375,41 @@ ORDER BY jobrun_id,
       ]]>
         </querytext_sqlite>
     </query>
+    <query>
+      <queryname>TestJobAudit</queryname>
+      <db>reporting</db>
+      <queryfields>fromdate,todate,job,jobgroup</queryfields>
+      <chartfields></chartfields>
+      <category>audit</category>
+      <linkquery></linkquery><querydescription></querydescription>
+      <querytext_sqlserver>
+          <![CDATA[
+   SELECT '${VAR_B}' example
+    ]]>
+      </querytext_sqlserver>
+      <querytext_oracle>
+          <![CDATA[
+   SELECT     msglog.msglog_crtdt, msglog.msglog_text, msglog.nodmst_name, msglog.usrmst_name, msglog.msglog_category, msglog.msglog_source , msglog_type
+    FROM         msglog 
+    WHERE     msglog.msglog_category in (10,33) and msglog.msglog_source=2 and msglog.msglog_subcategory in (2,3,4) and
+    msglog.msglog_crtdt between to_date('<<from_date>>','yyyy-mm-dd') and (to_date('<<to_date>>','yyyy-mm-dd') + 1)
+    and (
+         (msglog.jobmst_id in (select jobmst_id from jobdata where jobdata.version=0 and jobname like '<<job_name>>'))
+         )
+    order by   msglog.msglog_crtdt
+    ]]>
+      
+      </querytext_oracle>
+      <querytext_sqlite>
+          <![CDATA[
+   SELECT     msglog.msglog_crtdt, msglog.msglog_text, msglog.nodmst_name, msglog.usrmst_name
+    FROM         msglog
+    WHERE     msglog.msglog_category in (10,33) and msglog.msglog_source=2 and msglog.msglog_crtdt >= Datetime('<<from_date>>')  and msglog.msglog_crtdt <= Datetime('<<to_date>> 23:59:59')
+    order by   msglog.msglog_crtdt
+    ]]>
+      </querytext_sqlite>
+  </query>
+
     <query>
         <queryname>JobDisabled</queryname>
         <db>reporting</db>
@@ -9001,8 +9036,8 @@ ORDER BY "ProdDate",
         <import_oracle>y</import_oracle>
         <querytext_sqlserver>
             <![CDATA[
-declare @StartDate datetime = convert(datetime,'<<from_datetime>>:00',126) ,
-      @EndTime datetime = convert(datetime,'<<to_datetime>>:00',126),
+declare @StartDate datetime = convert(datetime,'<<from_date>>') ,
+      @EndTime datetime = convert(datetime,'<<to_date>>'),
       @Interval int = <<interval_minutes:15>>
       ;WITH cSequence AS
       (
@@ -9036,15 +9071,15 @@ WITH cSequence ("StartDate", "EndRange")  AS
       SELECT
       --to_date('2018-12-01 08:30', 'yyyy-mm-dd HH24:MI') "StartDate",
       --to_date('2018-12-01 08:30', 'yyyy-mm-dd HH24:MI') + 15/(24*60) "EndRange" from dual
-      to_date('<<from_datetime>>', 'yyyy-mm-dd"T"HH24:MI') "StartDate",
-      to_date('<<from_datetime>>', 'yyyy-mm-dd"T"HH24:MI') + 15/(24*60) "EndRange" from dual
+      to_date('<<from_date>>', 'yyyy-mm-dd"T"HH24:MI') "StartDate",
+      to_date('<<from_date>>', 'yyyy-mm-dd"T"HH24:MI') + 15/(24*60) "EndRange" from dual
       UNION ALL
       SELECT
       "EndRange",
       15/(24*60) + "EndRange"
       FROM cSequence
       WHERE 15/(24*60) + "EndRange" <
-      to_date('<<to_datetime>>', 'yyyy-mm-dd"T"HH24:MI')
+      to_date('<<to_date>>', 'yyyy-mm-dd"T"HH24:MI')
       --to_date('2018-12-04 09:30', 'yyyy-mm-dd HH24:MI')
      ) 
 SELECT "StartDate", count(jobrun_id) "JobsActive" FROM cSequence
@@ -9067,8 +9102,8 @@ SELECT "StartDate", count(jobrun_id) "JobsActive" FROM cSequence
         <import_oracle>y</import_oracle>
         <querytext_sqlserver>
             <![CDATA[
-declare @StartDate datetime = convert(datetime,'<<from_datetime>>:00',126) ,
-      @EndTime datetime = convert(datetime,'<<to_datetime>>:00',126),
+declare @StartDate datetime = convert(datetime,'<<from_date>>') ,
+      @EndTime datetime = convert(datetime,'<<to_date>>'),
       @Interval int = <<interval_minutes:60>>
       ;WITH cSequence AS
       (
@@ -9102,15 +9137,15 @@ WITH cSequence ("StartDate", "EndRange")  AS
       SELECT
       --to_date('2018-12-01 08:30', 'yyyy-mm-dd HH24:MI') "StartDate",
       --to_date('2018-12-01 08:30', 'yyyy-mm-dd HH24:MI') + 15/(24*60) "EndRange" from dual
-      to_date('<<from_datetime>>', 'yyyy-mm-dd"T"HH24:MI') "StartDate",
-      to_date('<<from_datetime>>', 'yyyy-mm-dd"T"HH24:MI') + 15/(24*60) "EndRange" from dual
+      to_date('<<from_date>>', 'yyyy-mm-dd"T"HH24:MI') "StartDate",
+      to_date('<<from_date>>', 'yyyy-mm-dd"T"HH24:MI') + 15/(24*60) "EndRange" from dual
       UNION ALL
       SELECT
       "EndRange",
       15/(24*60) + "EndRange"
       FROM cSequence
       WHERE 15/(24*60) + "EndRange" <
-      to_date('<<to_datetime>>', 'yyyy-mm-dd"T"HH24:MI')
+      to_date('<<to_date>>', 'yyyy-mm-dd"T"HH24:MI')
       --to_date('2018-12-04 09:30', 'yyyy-mm-dd HH24:MI')
      ) 
 SELECT "StartDate", count(jobrun_id) "JobsActive" FROM cSequence
@@ -9131,8 +9166,8 @@ SELECT "StartDate", count(jobrun_id) "JobsActive" FROM cSequence
         <linkquery></linkquery><querydescription></querydescription>>
         <querytext_sqlserver>
             <![CDATA[
-declare @StartDate datetime = convert(datetime,'<<from_datetime>>:00',126) ,
-      @EndTime datetime = convert(datetime,'<<to_datetime>>:00',126),
+declare @StartDate datetime = convert(datetime,'<<from_date>>') ,
+      @EndTime datetime = convert(datetime,'<<to_date>>'),
       @Interval int = <<interval_minutes:60>>
       ;WITH cSequence AS
       (
@@ -9162,15 +9197,15 @@ WITH cSequence ("StartDate", "EndRange")  AS
       SELECT
       --to_date('2018-12-01 08:30', 'yyyy-mm-dd HH24:MI') "StartDate",
       --to_date('2018-12-01 08:30', 'yyyy-mm-dd HH24:MI') + 15/(24*60) "EndRange" from dual
-      to_date('<<from_datetime>>', 'yyyy-mm-dd"T"HH24:MI') "StartDate",
-      to_date('<<from_datetime>>', 'yyyy-mm-dd"T"HH24:MI') + 15/(24*60) "EndRange" from dual
+      to_date('<<from_date>>', 'yyyy-mm-dd"T"HH24:MI') "StartDate",
+      to_date('<<from_date>>', 'yyyy-mm-dd"T"HH24:MI') + 15/(24*60) "EndRange" from dual
       UNION ALL
       SELECT
       "EndRange",
       15/(24*60) + "EndRange"
       FROM cSequence
       WHERE 15/(24*60) + "EndRange" <
-      to_date('<<to_datetime>>', 'yyyy-mm-dd"T"HH24:MI')
+      to_date('<<to_date>>', 'yyyy-mm-dd"T"HH24:MI')
       --to_date('2018-12-04 09:30', 'yyyy-mm-dd HH24:MI')
      ) 
 SELECT "StartDate",
@@ -9244,14 +9279,14 @@ WITH cSequence ("StartDate", "EndRange") AS
   (SELECT
     --to_date('2018-12-01 08:30', 'yyyy-mm-dd HH24:MI') "StartDate",
     --to_date('2018-12-01 08:30', 'yyyy-mm-dd HH24:MI') + 15/(24*60) "EndRange" from dual
-    to_date('<<from_datetime>>', 'yyyy-mm-dd"T"HH24:MI') "StartDate",
-    to_date('<<from_datetime>>', 'yyyy-mm-dd"T"HH24:MI') + 15/(24*60) "EndRange"
+    to_date('<<from_date>>', 'yyyy-mm-dd"T"HH24:MI') "StartDate",
+    to_date('<<from_date>>', 'yyyy-mm-dd"T"HH24:MI') + 15/(24*60) "EndRange"
   FROM dual
   UNION ALL
   SELECT "EndRange",
     15/(24*60) + "EndRange"
   FROM cSequence
-  WHERE 15/(24*60) + "EndRange" < to_date('<<to_datetime>>', 'yyyy-mm-dd"T"HH24:MI')
+  WHERE 15/(24*60) + "EndRange" < to_date('<<to_date>>', 'yyyy-mm-dd"T"HH24:MI')
     --to_date('2018-12-04 09:30', 'yyyy-mm-dd HH24:MI')
   )
 SELECT "StartDate",
@@ -9312,15 +9347,15 @@ WITH cSequence ("StartDate", "EndRange")  AS
       SELECT
       --to_date('2018-12-01 08:30', 'yyyy-mm-dd HH24:MI') "StartDate",
       --to_date('2018-12-01 08:30', 'yyyy-mm-dd HH24:MI') + 15/(24*60) "EndRange" from dual
-      to_date('<<from_datetime>>', 'yyyy-mm-dd"T"HH24:MI') "StartDate",
-      to_date('<<from_datetime>>', 'yyyy-mm-dd"T"HH24:MI') + 15/(24*60) "EndRange" from dual
+      to_date('<<from_date>>', 'yyyy-mm-dd"T"HH24:MI') "StartDate",
+      to_date('<<from_date>>', 'yyyy-mm-dd"T"HH24:MI') + 15/(24*60) "EndRange" from dual
       UNION ALL
       SELECT
       "EndRange",
       15/(24*60) + "EndRange"
       FROM cSequence
       WHERE 15/(24*60) + "EndRange" <
-      to_date('<<to_datetime>>', 'yyyy-mm-dd"T"HH24:MI')
+      to_date('<<to_date>>', 'yyyy-mm-dd"T"HH24:MI')
       --to_date('2018-12-04 09:30', 'yyyy-mm-dd HH24:MI')
      )                 
 SELECT "StartDate", Owner, count(jobrun_id) "JobsActive" FROM cSequence left outer join JOBRUN_STATUS_SUMMARY  on
@@ -11913,7 +11948,7 @@ select selected_id, entityName,username from SELECTED_ENTITY where entityType = 
         <template_type>jinja</template_type>
         <querytext_sqlserver>
             <![CDATA[
-select top {{max_rows|default('500')}} * from master_log  where entry_datetime between convert(datetime,'{{from_datetime|default('00')}}:00',126) and convert(datetime,'{{to_datetime|default('00')}}:00',126)
+select top {{max_rows|default('500')}} * from master_log  where entry_datetime between convert(datetime,'{{from_date|default('00')}}') and convert(datetime,'{{to_date|default('00')}}')
 ]]>
         </querytext_sqlserver>
         <querytext_oracle>

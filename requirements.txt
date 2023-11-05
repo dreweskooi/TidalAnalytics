@@ -3,3 +3,4 @@ aioodbc
 nicegui
 xmltodict
 nicegui[highcharts]
+tortoise

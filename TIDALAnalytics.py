@@ -1,18 +1,47 @@
 from  nicegui import ui, app 
 #from sqlalchemy import create_engine
 import asyncio
+from typing import List
+from tortoise import Tortoise
+#import tortoise.backends.sqlite
+#import models
+import datetime 
 import aioodbc
 from timeit import default_timer as timer
 import sys
 import xmltodict
 import json 
+import pandas
 import re
+def try_parse_int(text):
+  try:
+    return int(text)
+  except:
+    return 1
+class State:
+    def __init__(self):
+        self.x_axis = ''
+        self.y_axis = ''
+        self.value =''
+
 #import pandas
 loop = asyncio.get_event_loop()
 dsn={
     'admiral':'Driver=ODBC Driver 17 for SQL Server;Server=localhost,1433;Database=AdmiralCHS_MN501;uid=sa;pwd=kooi',
     'reporting' : 'Driver=ODBC Driver 17 for SQL Server;Server=localhost,1433;Database=TidalReporting_US_DEV;uid=sa;pwd=kooi'
 }
+"""
+async def init_db():
+    await Tortoise.init(db_url="sqlite://TidalReporting.db", modules={"models": ["models"]})
+    await Tortoise.generate_schemas()
+
+async def close_db() -> None:
+    await Tortoise.close_connections()
+
+app.on_startup(init_db)
+app.on_shutdown(close_db)
+"""
+
 #admiral_dsn = 'Driver=ODBC Driver 17 for SQL Server;Server=localhost,1433;Database=AdmiralCHS_MN501;uid=sa;pwd=kooi'
 #reporting_dsn = 'Driver=ODBC Driver 17 for SQL Server;Server=localhost,1433;Database=AdmiralCHS_MN501;uid=sa;pwd=kooi'
 #conn_adm = create_engine('mssql+pyodbc://sa:kooi@localhost:1433/AdmiralCHS_MN501?driver=ODBC+Driver+17+for+SQL+Server')
@@ -74,12 +103,13 @@ def showe(e):
 def pagelayout():
     with ui.header(elevated=True).style('background-color: primary').classes('items-center justify-between'):
         with ui.row():
-            ui.label('SYNERTECH TIDAL ANALYTICS').classes('text-2xl')
-            with ui.button(text='Select Master'):    
+            ui.icon('analytics').classes('text-5xl top-0')
+            ui.label('Synertech Tidal Reporting').classes('text-2xl')
+
+            with ui.button(text='Job Activity'):    
                 with ui.menu() as menu:
-                    ui.menu_item('JobAudit', lambda: ui.open('/queries/JobAudit'))
-                    ui.menu_item('ActionAudit', lambda: ui.open('/queries/ActionAudit'))
-                    ui.menu_item('AlertAudit', lambda: ui.open('/queries/AlertAudit'))
+                    ui.menu_item('Job Activity', lambda: ui.open('/queries/715JobActivityNG'))
+                    ui.menu_item('Job Activity in Error', lambda: ui.open('/queries/715JobActivityInError'))
             with ui.button(text='Audit'):    
                 with ui.menu() as menu:
                     for q in query_dict['queries']['query']:
@@ -102,11 +132,43 @@ def pagelayout():
                             ui.menu_item('SubMenu item 1', lambda: lambda: ui.link('',''))
                             ui.menu_item('SubMenu item 2', lambda: lambda: ui.link('',''))
 
-@ui.page('/')
+@ui.page('/',response_timeout=99)
 def index():
     pagelayout()
+@ui.page('/edit_queries',response_timeout=99)
+async def edit_queries():
+    def handleRowSelection(event):
+        ui.open(f"edit_query/{event.args['data']['name']}")
+        """
+        if event.args['colId']=='jobmst_id':
+            with ui.dialog() as dialog , ui.card():
+                with ui.grid(columns=4):
+                    for r in event.args['data']:
+                        ui.label(r).style('background-color: primary')
+                        ui.label(event.args['data'][r])
+            dialog.open()
+        """
 
-@ui.page('/queries/{queryname}')
+    pagelayout()
+    rows= [{'name': q['queryname'],'edit': 'True'} for q in query_dict['queries']['query']]
+    grid = ui.aggrid({
+    'defaultColDef': {'flex': 1},
+    'columnDefs': [
+        {'headerName': 'Name', 'field': 'name','filter': 'agTextColumnFilter', 'floatingFilter': True},
+        #{'headerName': 'Edit', 'field': ui.link('Edit', '/edit_query/{name}')},
+        
+    ],
+    'rowData': rows
+    ,
+    'rowSelection': 'simgle',
+    }).style('height: 500px').on('cellClicked', lambda event: handleRowSelection(event=event))
+
+@ui.page('/edit_query/{queryname}',response_timeout=99)
+async def edit_query(queryname):
+    pagelayout()
+    ui.label(f"Edit query {queryname}")
+
+@ui.page('/queries/{queryname}',response_timeout=99,reconnect_timeout=10)
 async def queries(queryname):
     #print(queryname)
     pagelayout()
@@ -132,6 +194,11 @@ async def queries(queryname):
     def update_parameters_table():
         if not 'parameter_table' in locals():
             return
+        def get_Params_and_re_execute():
+            for m in matches:
+                print(params[m].value)
+                app.storage.user[m] = params[m].value
+            ui.open(f'/queries/{sel_query.value}')
         #if not 'grid' in locals():
         #    return
         #grid.options['columndefs']=None
@@ -153,7 +220,17 @@ async def queries(queryname):
                                 defaultvalue=m.lstrip('<<').rstrip('>>').split(':')[1]
                             if app.storage.user.get(m,None):
                                 defaultvalue=app.storage.user[m]
-                            if parmname.lower() == 'from_date':    
+                                if defaultvalue=='':
+                                    if m =='prod_date':
+                                        defaultvalue=  datetime.now.strftime("%Y-%m-%d")
+                                    if m =='from_date':
+                                        defaultvalue=  datetime.now - datetime.timedelta(days=8).strftime("%Y-%m-%d")
+                                    if m =='to_date':
+                                        defaultvalue=  datetime.now - datetime.timedelta(days=1).strftime("%Y-%m-%d")
+
+                            else:
+                                app.storage.user[m]=''
+                            if parmname.lower() == 'from_date':
                                 with ui.input('From Date') as from_date:
                                     from_date.value=defaultvalue
                                     with from_date.add_slot('append'):
@@ -179,10 +256,11 @@ async def queries(queryname):
                                         ui.date().bind_value(to_date)
                                 params[m]= to_date
                             else:
-
-                                params[m] = ui.input(label=parmname,value=defaultvalue, placeholder='')                    
-
-    async def getData():
+                                params[m] = ui.input(label=parmname,value=defaultvalue, placeholder='')
+        if 'sel_query' in locals() and sel_query.value:                                
+            ui.button('Get Data', on_click=lambda: get_Params_and_re_execute())                                                  
+        #ui.button('Get Data', on_click=lambda: ui.open(f'/queries/{sel_query.value}'))
+    async def getData(queryname):
         #expansion.close()
         grid_expansion.open()
         #expansion.update()
@@ -203,17 +281,20 @@ async def queries(queryname):
                 result = await connect_db(db=db, sql=sqltext)  
                 end = timer()
                 elapse_time= end - start
-                ui.notify(f"{elapse_time:.01f} secs,{len(result)} rows.")
+                print(f"{elapse_time:.01f} secs,{len(result)} rows.")
                 rows = []
                 if len(result) >0:
                     columns = [column[0] for column in result[0].cursor_description]             
                     for r in result:
                         rows.append(dict(zip(columns, r)))
+                df = pandas.DataFrame.from_dict(rows)
             except Exception as ex:
                 print(ex)
                 rows=[]
+
         else:
             rows=[]
+            df = pandas.DataFrame()
         cols =[]
         if len(rows)>0:
             #cols = rows[0]._fields if len(rows) > 0 else []
@@ -225,7 +306,11 @@ async def queries(queryname):
             grid.update()
             cols=columns
             x_axis.options=list(cols)
+            x_axis.set_value(app.storage.user.get(f'{sel_query.value}:x-axis',''))
+            chart_function.options=['Sum', 'Count']
+            chart_function.set_value(app.storage.user.get(f'{sel_query.value}:chart-function',''))
             y1_axis.options=list(cols)
+            y1_axis.set_value(app.storage.user.get(f'{sel_query.value}:y-axis',''))
             seriesdata.options=list(cols)
         else:
             cols = []
@@ -238,17 +323,31 @@ async def queries(queryname):
             #grid.call_api_method('sizeColumnsToFit')
             grid.update()
             x_axis.options=list(cols)
+            x_axis.set_value(app.storage.user.get(f'{sel_query.value}:x-axis',''))
+            chart_function.options=['Sum', 'Count']
+            chart_function.set_value(app.storage.user.get(f'{sel_query.value}:chart-function',''))
             y1_axis.options=list(cols)
+            y1_axis.set_value(app.storage.user.get(f'{sel_query.value}:y-axis',''))
             seriesdata.options=list(cols)
         #series.options=list(cols)
         
         x_axis.update()
         y1_axis.update()
         seriesdata.update()
-
+        if 'lbl_count' in locals():
+            lbl_count.text= f'Rows:'
         
         return 
-    
+    async def get_specified_parameters():
+        row = await models.UserQuery.filter(queryname=sql_query.value)
+
+        for row in reversed(rows):
+            with ui.card():
+                with ui.row().classes('items-center'):
+                    ui.input('Description', on_change=row.save) \
+                        .bind_value(row, 'description').on('blur', list_of_outages.refresh)
+
+        pass 
     def get_parameters(queryname):
         params ={}
         if queryname:
@@ -313,27 +412,32 @@ async def queries(queryname):
         pass
 
         #ui.button(on_click=lambda: right_drawer.toggle(), icon='menu').props('flat color=white')
-    #with ui.left_drawer(top_corner=False, bottom_corner=False).style('background-color: #d7e3f4').classes('w-96'):
+    #with ui1.left_drawer(top_corner=False, bottom_corner=False).style('background-color: #d7e3f4').classes('w-96'):
+    """
     if queryname != None:
         app.storage.user['query'] = queryname
         ui.open('/queries')
+    """
     params ={}
     rows=[]
     cols=[]
     #with ui.expansion("Selection Query",value=True).classes('w-full') as expansion:
     #    pass
     with ui.row() as query_row:
-        qry_button=ui.button('Get Data', on_click=getData)
+        if 'sel_query' in locals():
+            qry_button=ui.button('Get Data', on_click=getData(sel_query.value))
+            lbl_count= ui.label('Rows: 0')
         sel_category = ui.select(label='Select Query Category',value=app.storage.user.get('category',None) ,options=category_list,on_change=lambda: update_query_list()).style('width:100px')
-        sel_query = ui.select(label='Select Query',value=app.storage.user.get('query',None),options=sorted(set([i['queryname']  for i in query_dict['queries']['query'] if i.get('templatetype','') !='jinja' and i['db'].lower() in ['admiral','reporting']])), on_change=update_parameters_table)
+        sel_query = ui.select(label='Select Query',value=queryname,options=sorted(set([i['queryname']  for i in query_dict['queries']['query'] if i.get('templatetype','') !='jinja' and i['db'].lower() in ['admiral','reporting']])), on_change=update_parameters_table)
         #ui.separator()
         parameter_table = ui.grid()
         if sel_query.value:
             update_parameters_table()
+        #qry_button=ui.button('Get Data', on_click=getData(sel_query.value))            
         lbl_elapsetime = ui.label()
         lbl_rows = ui.label()
     with ui.expansion("Query data").classes('w-full') as grid_expansion:
-        with ui.aggrid({
+        grid = ui.aggrid({
         'defaultColDef': {'resizable': True},
         'pagination': False,
         'paginationPageSize': 100,        
@@ -342,77 +446,87 @@ async def queries(queryname):
             'rowData': [
             ],
         'rowSelection': 'single',
-        },auto_size_columns=False).style('height: 500px').on('cellClicked', lambda event: handleRowSelectedion(event=event)).on('firstDataRendered', lambda: grid.call_column_api_method('autoSizeAllColumns')) as grid:
-            with ui.context_menu() as cm1:
-                ui.menu_item('Flip horizontally')
-                ui.menu_item('Flip vertically')
-                ui.separator()
-                ui.menu_item('Reset')
+        },auto_size_columns=False).style('height: 500px').on('cellClicked', lambda event: handleRowSelectedion(event=event)).on('firstDataRendered', lambda: grid.call_column_api_method('autoSizeAllColumns'))
         #ui.button('AutoSize Columns', on_click=lambda: grid.call_column_api_method('autoSizeAllColumns'))
-    with ui.expansion("Chart").classes('w-full') as chart_expansion:        
-        with ui.row():
-            x_axis =  ui.select(list(cols), label='Select X axis ').style('width:200px')
-            y1_axis = ui.select(list(cols), label='Select Y axis ').style('width:200px')
-            seriesdata =  ui.select(list(cols), label='Select Group').style('width:200px')
-            #series_data = ui.select(cols, label='Series')
-        json = {
-            'title': False,
-            'chart': {'type': 'bar'},
-            'xAxis': {'categories': ['A']},
-            'series': [
-                {'name': 'Alpha', 'data': []},
-                ],
-                }
-        with ui.row() as r:
-            chart = ui.highchart(json).style('height: 200px; width: 100%;') 
-            chart.visible=False
+    #with ui.expansion("Chart",value=True).classes('w-full') as chart_expansion:        
+    #    chart_expansion.open()
 
-        def update():
-            rows=grid.options['rowData']
-            if x_axis.value == None or y1_axis.value==None:
-                ui.notify("Select x and y axis!")
-                return
-            if seriesdata.value:
-                series= set([row[seriesdata.value] for row in rows])
-            x1 = sorted(list(set([i[x_axis.value ] or '' for i in rows])))
-            groups=[sorted(list(set([i[y1_axis.value ] or '' for i in rows])))]
-            y =[]
+    with ui.row():
+        val =app.storage.user.get(f'{sel_query.value}:x-axis','')
+        x_axis =  ui.select(list(cols),value=val,label='Select X axis ').style('width:200px')
+        chart_function = ui.select(['Sum','Count'])
+        x_axis.value=val
+        x_axis.update()
+        y1_axis = ui.select(list(cols), label='Select Y axis ').style('width:200px')
+        if app.storage.user.get(f'{sel_query.value}:y-axis',None) != None:
+            val = app.storage.user[f'{sel_query.value}:y-axis']
+            y1_axis.set_value(val)
+
+        seriesdata =  ui.select(list(cols), label='Select Group').style('width:200px')
+        #series_data = ui.select(cols, label='Series')
+    json = {
+        'title': False,
+        'chart': {'type': 'bar'},
+        'xAxis': {'categories': ['A']},
+        'series': [
+            {'name': 'Alpha', 'data': []},
+            ],
+            }
+    with ui.row() as r:
+        chart = ui.highchart(json).style('height: 200px; width: 100%;') 
+        chart.visible=False
+
+    def update():
+        rows=grid.options['rowData']
+        if x_axis.value == None or y1_axis.value==None:
+            ui.notify("Select x and y axis!")
+            return
+        app.storage.user[f'{sel_query.value}:x-axis'] = x_axis.value
+        app.storage.user[f'{sel_query.value}:chart-function'] = chart_function.value
+        app.storage.user[f'{sel_query.value}:y-axis'] = y1_axis.value
+        pivot_df = pandas.pivot_table(index=x_axis.value, columns=y1_axis, values='new_results_reported', aggfunc='sum')
+        if seriesdata.value:
+            series= set([row[seriesdata.value] for row in rows])
+        x1 = sorted(list(set([i[x_axis.value ] or '' for i in rows])))
+        groups=[sorted(list(set([try_parse_int(i[y1_axis.value]) for i in rows])))]
+        y =[]
+        if seriesdata.value:
             for g in series:
                 y_temp = [{'name': g ,'data':   i[y1_axis.value] } for i in rows if g == i[seriesdata.value] ]
                 y.append(y_temp)
-            
-            
-            y1= [i[y1_axis.value] for i in rows]
-            json1 ={
-            'title': 'TIDAL Uptime and Planned/Unplanned Outages',
-            'chart': {'type': 'column'},
-            'barmode': 'stacked',
-            'plotOptions': {
-                'series': {
-                    'stacking': 'normal',
-                    'dataLabels': {
-                        'enabled': True
-                    }
+        
+        
+        y1= [i[y1_axis.value] for i in rows]
+        json1 ={
+        'title': 'TIDAL Uptime and Planned/Unplanned Outages',
+        'chart': {'type': 'column'},
+        'barmode': 'stacked',
+        'plotOptions': {
+            'series': {
+                'stacking': 'normal',
+                'dataLabels': {
+                    'enabled': True
                 }
-            },
-            'xAxis': {'categories': x1},
-            'yAxis': {'values': y1,'title' : {'text': 'Value'}},
-            'series': [
-                {'name': y1_axis.value, 'data': y1, 'color': 'blue'},
-            ],
-                }
-            json1['series'] = y
-            with r:
-                r.clear()
-                ui.chart(json1).style('height: 200px; width: 100%;') 
-                #ui.json_editor({'content': {'json': json1}},  on_change=lambda e: ui.notify(f'Change: {e}'))                
+            }
+        },
+        'xAxis': {'categories': x1},
+        'yAxis': {'values': y1,'title' : {'text': 'Value'}},
+        'series': [
+            {'name': y1_axis.value, 'data': y1, 'color': 'blue'},
+        ],
+            }
+        #json1['series'] = y1
+        with r:
+            r.clear()
+            chart = ui.highchart(json1).style('height: 500px; width: 1000px;') 
+            chart.update()
+            #ui.json_editor({'content': {'json': json1}},  on_change=lambda e: ui.notify(f'Change: {e}'))                
 
-        ui.button('Update Chart', on_click=update)
+    ui.button('Update Chart', on_click=update)
     with ui.footer().style('background-color: #3874c8'):
         ui.label('SYNERTECH TIDAL ANALYTICS')
+    await getData(queryname)
+    update()
 
-    if queryname!='':
-        await getData()
 
-
-ui.run(port=7777, reload=False, storage_secret='synertech')
+ui.run(port=7777, reload=False, storage_secret='synertech2')
