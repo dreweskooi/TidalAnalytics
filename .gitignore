@@ -1,2 +1,7 @@
 venv/*
 .nicegui/*
+*_tidal_object.json
+*.complete
+transport_selection_*_*.json
+__pycache__
+log

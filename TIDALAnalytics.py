@@ -13,6 +13,13 @@ import xmltodict
 import json 
 import pandas
 import re
+import tesrest
+import shlex
+import platform
+import shlex
+import sys
+import os
+import sqlite3
 def try_parse_int(text):
   try:
     return int(text)
@@ -26,10 +33,29 @@ class State:
 
 #import pandas
 loop = asyncio.get_event_loop()
+try:
+    with open('tidalanalytics.config.json') as f:
+        cfg = tesrest.AttrDict(json.load(f))
+except Exception as ex:
+    print("Error in getting CONFIGURATION, check tidalanalytics.config.json. Exiting")
+    sys.exit(1) 
+try:
+    with open('transport.selection.json') as f:
+        transport_sel = tesrest.AttrDict(json.load(f))
+except Exception as ex:
+    print("Error in getting transport selection, check transport.selection.json. Exiting")
+    sys.exit(1) 
+
 dsn={
     'admiral':'Driver=ODBC Driver 17 for SQL Server;Server=localhost,1433;Database=AdmiralCHS_MN501;uid=sa;pwd=kooi',
     'reporting' : 'Driver=ODBC Driver 17 for SQL Server;Server=localhost,1433;Database=TidalReporting_US_DEV;uid=sa;pwd=kooi'
 }
+#TIDAL_CM = {
+#        "DEV" : "http://localhost:8080/api/tes-6.5",
+#        "TEST" : "http://localhost:8080/api/tes-6.5",
+#        }
+#TIDAL_CM_USER = "kooi\dkooi"
+#TIDAL_CM_PASSWORD = "dkk"
 """
 async def init_db():
     await Tortoise.init(db_url="sqlite://TidalReporting.db", modules={"models": ["models"]})
@@ -90,7 +116,7 @@ async def connect_db(db,sql):
 with open('queries.xml', 'r', encoding='utf-8') as file:
     my_xml = file.read()
     query_dict = xmltodict.parse(my_xml)
-    category_list = sorted(set([i['category']  for i in query_dict['queries']['query'] if i['category'].lower() != 'hidden' and i['db'] in ['admiral','reporting']]))
+    category_list = sorted(set([i['category']  for i in query_dict['queries']['query'] if i['category'].lower() != 'hidden' and i['db'] in ['admiral','reporting','restapi']]))
     query_list = sorted(set([i['queryname']  for i in query_dict['queries']['query']]))
     """
     json_object = json.dumps(my_dict, indent=4)
@@ -122,15 +148,15 @@ def pagelayout():
                         if q['category'].lower()=='analysis':
                             with ui.element():
                                 ui.menu_item(q['queryname'], on_click=lambda q = q : ui.open(f'/queries/{q["queryname"]}'))
-            with ui.button(icon='menu',text='Audit'):    
+            with ui.button(icon='menu',text='CM'):    
                 with ui.menu() as menu:
                     for q in query_dict['queries']['query']:
-                        if q['category']=='audit':
+                        if q['db']=='restapi':
                             ui.menu_item(q['queryname'], lambda q=q: ui.open(f'/queries/{q["queryname"]}'))
-                    with ui.button(icon='menu',text='SubAdmin'):                    
-                        with ui.menu() as menu:
-                            ui.menu_item('SubMenu item 1', lambda: lambda: ui.link('',''))
-                            ui.menu_item('SubMenu item 2', lambda: lambda: ui.link('',''))
+            ui.button(icon='menu',text='Transport', on_click=lambda q=q: ui.open(f'/transport/source'))
+            ui.button(icon='menu',text='Test', on_click=lambda q=q: ui.open(f'/testpage'))
+#                with ui.menu() as menu:
+#                    ui.menu_item('Select Source ', lambda q=q: ui.open(f'/transport/source'))                    
 
 @ui.page('/',response_timeout=99)
 def index():
@@ -168,6 +194,234 @@ async def edit_query(queryname):
     pagelayout()
     ui.label(f"Edit query {queryname}")
 
+@ui.page('/transport/source',response_timeout=99,reconnect_timeout=10)
+
+async def transportSelectSource():
+    data ={
+        'table' : {},
+        'selected':{},
+        'selection':{}
+    }
+    selected = []
+    job_or_jobgroup ='JobGroup'
+    table1 ={}
+    table2={}
+    ENV = app.storage.user['transport_source']
+    if ENV == None:
+        ENV=list(cfg['CM'].keys())[0]
+    tesconn = tesrest.TESREST(cfg.CM[ENV], cfg.CM_USER[ENV], cfg.CM_PASSWORD[ENV])
+
+    pagelayout()
+    try:
+        with open('transport.selection.json') as f:
+            transport_sel = tesrest.AttrDict(json.load(f))
+    except Exception as ex:
+        print("Error in getting transport selection, check transport.selection.json. Exiting")
+        sys.exit(1) 
+
+    async def getJobData(tesobject, criteria, columns,rows):
+        result, msg = await tesconn.getTESList(tesobject,criteria=criteria,columns="id,parentid,name,type,fullpath")
+        rows=[]
+        if len(result) >0:
+            columns = [column for column in result[0]._attrs]             
+            for r in result:
+                nr  ={}
+                for c in columns:
+                    nr[c] = r[c]
+                rows.append(nr)
+
+        tabdata.update()
+
+    def set_source():
+        app.storage.user['transport_source'] = sel_source.value
+        ui.notify(f'Connecting to {sel_source.value}')
+        tesconn = tesrest.TESREST(cfg.CM[sel_source.value], cfg.CM_USER[sel_source.value], cfg.CM_PASSWORD[sel_source.value])
+        table1.rows.clear()
+        table1.update()
+        rows=[]
+        if sel_object.value in ['Job','JobGroup']:
+            filter=''
+            columns='id,parentid,name,type,fullpath'
+            ui.notify(f'Getting data to {tesconn.url}')
+            result,_ = tesconn.getTESListSorted('Job',filter,columns=columns) 
+            if len(result) >0:
+                columns = [column for column in result[0]._attrs]             
+                for r in result:
+                    nr  ={}
+                    for c in columns:
+                        nr[c] = r[c]
+                    table1.rows.append(nr)
+        #table1.rows.clear()
+        #table1.rows.append(rows)
+        table1.update()
+            
+
+    def set_dest():
+        app.storage.user['transport_dest'] = sel_dest.value
+    def set_object():
+        app.storage.user['transport_object'] = sel_object.value
+    def add_to_selected():
+        for r in table1.selected:
+            if not r['fullpath'] in [t['name'] for t in table2.rows]:
+                table2.add_rows({'name': r['fullpath'], 'job_or_jobgroup' : job_or_jobgroup.value})
+        table1.selected.clear()
+        table2.update()
+        table1.update()
+        #selection.clear()
+        selected.clear()
+        #selection.update()
+
+    async def run_command(command: str) -> None:
+        """Run a command in the background and display the output in the pre-created dialog."""
+        dialog.open()
+        result.content = ''
+        command = command.replace('python3', sys.executable)  # NOTE replace with machine-independent Python path (#1240)
+        process = await asyncio.create_subprocess_exec(
+            *shlex.split(command, posix="win" not in sys.platform.lower()),
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT,
+            cwd=os.path.dirname(os.path.abspath(__file__))
+        )
+        # NOTE we need to read the output in chunks, otherwise the process will block
+        output = ''
+        while True:
+            new = await process.stdout.read(512)
+            if not new:
+                break
+            output += new.decode()
+            # NOTE the content of the markdown element is replaced every time we have new output
+            result.content = f'```\n{output}\n```'
+    
+    async def start_command(command: str) -> None:
+        """Run a command in the background"""
+        command = command.replace('python3', sys.executable)  # NOTE replace with machine-independent Python path (#1240)
+        process = await asyncio.create_subprocess_exec(
+            *shlex.split(command, posix="win" not in sys.platform.lower()),
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT,
+            cwd=os.path.dirname(os.path.abspath(__file__))
+        )
+
+    def get_transport_log():
+        #ui.notify(f'Checking transportlog') 
+        if app.storage.user['ts']=='':
+            #ui.notify('No Transport active')
+            app.storage.user['processid'] = ''
+            return
+        else:
+            if app.storage.user['processid']!='':
+                #ui.notify(f'Active processid {app.storage.user["processid"]}')
+                #app.storage.user['processid'] = cfgsel['processid']
+                sql= f"SELECT pid,created_date, message FROM messagelog where env_from='{app.storage.user['transport_source']}' and env_to='{app.storage.user['transport_dest']}' and pid ={app.storage.user['processid']} order by created_date"
+                #ui.notify(sql)
+                con = sqlite3.connect("db/transport.db")
+                cur = con.cursor()
+                # Return all results of query
+                rows =cur.execute(sql).fetchall()
+                con.close()
+                logarea.value=''
+                for r in rows:
+                    logarea.value += r[2] + '\n'
+                logarea.update()
+                return
+            else:
+                with open(f'transport_selection_{app.storage.user["ts"]}.json') as f:
+                    cfgsel = tesrest.AttrDict(json.load(f))
+                    if cfgsel.get('processid',None) != None:
+                        app.storage.user['processid'] = cfgsel['processid']
+                    else:
+                        app.storage.user['processid'] = ''
+                pass
+
+
+    async def save_selection():
+        transport_sel.Job =[]
+        transport_sel.Jobgroup= []
+        for r in table2.rows:
+            if r['job_or_jobgroup'] =='Job':
+                transport_sel['Job'].append(r['name'])
+                if not 'Job' in transport_sel['TRANSPORT']:
+                    transport_sel['TRANSPORT'].append('Job')
+                transport_sel['Job'].append(r['name'])
+            elif r['job_or_jobgroup'] =='JobGroup':
+                if not 'JobGroup' in transport_sel['TRANSPORT']:
+                    transport_sel['TRANSPORT'].append('JobGroup')
+                transport_sel['JobGroup'].append(r['name'])
+        ts = datetime.datetime.now().strftime("%m%d%Y_%H%M%S")
+        transport_sel['FROM']= sel_source.value
+        transport_sel['TO']= sel_dest.value
+        with open(f"transport_selection_{ts}.json", "w") as outfile:
+            json.dump(transport_sel, outfile)
+            save_ts.set_text(ts)
+            save_ts.update()
+        ui.notify(f'Start transport.exe transport_selection_{ts}.json')
+        app.storage.user['processid']=''
+        app.storage.user['ts']=ts
+        await start_command(f'transport.exe transport_selection_{ts}.json')
+        ui.notify("Transport complete!")
+
+        
+    with ui.row():
+        sel_source = ui.select(label='Select Source',value=app.storage.user.get('transport_source',None) ,options=list(cfg['CM'].keys()),on_change= set_source).style('width:300px')
+        sel_dest   = ui.select(label='Select destination',value=app.storage.user.get('transport_dest',None) ,options=list(cfg['CM'].keys()),on_change= set_dest).style('width:300px')
+        rows=[]
+#    with ui.row():
+        sel_object   = ui.select(label='Select Object',value=app.storage.user.get('transport_object',None) ,options=transport_sel['TRANSPORT_OBJECT'],on_change= set_object).style('width:300px')
+        sel_filter = ui.input(label='Enter filter:').style('width:300px')
+        columns1 = [
+
+            {'name': 'name', 'label': 'Name', 'field': 'fullpath','sortable': True, 'align': 'left'},
+            {'name': 'type', 'label': 'Type', 'field': 'type','sortable': True, 'align': 'left'},
+                ]
+
+        columns2 = [
+
+            {'name': 'name', 'label': 'Name', 'field': 'name','sortable': True, 'align': 'left'},
+            {'name': 'job_or_jobgroup', 'label': 'Job or Group', 'field': 'job_or_jobgroup','sortable': True, 'align': 'left'},
+                ]
+
+        get_data = ui.button(text="GET DATA",on_click=lambda rows=rows : getData("Job", f"name like '{sel_filter.value}'","",rows))
+    sel_rows=[]        
+    if sel_object.value in ['Job','JobGroup']:
+        filter=''
+        columns='id,parentid,name,type,fullpath'
+        rows=[]
+
+        result,_ = tesconn.getTESListSorted('Job',filter,columns=columns) 
+        if len(result) >0:
+            columns = [column for column in result[0]._attrs]             
+            for r in result:
+                nr  ={}
+                for c in columns:
+                    nr[c] = r[c]
+                rows.append(nr)
+        with ui.row():
+            job_or_jobgroup =ui.toggle({'Job': 'Select as Job', 'JobGroup': 'Select as JobGroup'},value='JobGroup')#.bind_value(globals(),'job_or_jobgroup')
+            ui.button(text='Add to selection',on_click=add_to_selected)
+        with ui.splitter().classes('w-full text-left') as splitter:
+            with splitter.before:
+                #selection = ui.select(options=[r['fullpath'] for r in teslist], with_input=True,multiple=True,clearable=True, on_change=lambda e: ui.notify(e.value)).classes('w-1/2')#.bind_value(globals(),'selected')
+                with ui.table(title='Selection', columns=columns1, row_key='name', rows=rows, selection='multiple', pagination=10).classes('w-full text-left') as table1:
+                    with table1.add_slot('top-right'):
+                        with ui.input(placeholder='Search').props('type=search').bind_value(table1, 'filter').add_slot('append'):
+                            ui.icon('search')
+            with splitter.after:
+                ui.label().bind_text_from(table2, 'selected', lambda val: f'Current selection: {val}')
+                ui.button('Remove', on_click=lambda: table2.remove_rows(*table2.selected)).bind_visibility_from(table2, 'selected', backward=lambda val: bool(val))
+                #table =  ui.table(columns=columns, rows=[], row_key='name',selection='multiple', pagination=10).classes('w-full')
+                with ui.table(title='Transport Selection', columns=columns2, row_key='name', rows=sel_rows, selection='multiple', pagination=10).classes('w-full') as table2:
+                    with table2.add_slot('top-right'):
+                        with ui.input(placeholder='Search').props('type=search').bind_value(table2, 'filter').add_slot('append'):
+                            ui.icon('search')
+                with ui.row():
+                    ui.button('Start Transport', on_click=save_selection)
+                    ui.label('TimeStamp:')
+                    save_ts = ui.label()
+                    logarea = ui.textarea().classes('w-full text-left')
+                    ui.timer(1, lambda: get_transport_log())
+            #with ui.dialog() as dialog, ui.card():
+            #    result = ui.markdown()                    
+                
+
+
 @ui.page('/queries/{queryname}',response_timeout=99,reconnect_timeout=10)
 async def queries(queryname):
     #print(queryname)
@@ -185,7 +439,7 @@ async def queries(queryname):
     """
     def update_query_list():
         app.storage.user['category'] = sel_category.value
-        sel_query.options = sorted(set([i['queryname']  for i in query_dict['queries']['query'] if i['category'] == sel_category.value and i['db'].lower() in ['admiral','reporting']]))
+        sel_query.options = sorted(set([i['queryname']  for i in query_dict['queries']['query'] if i['category'] == sel_category.value and i['db'].lower() in ['admiral','reporting','restapi']]))
         sel_query.update()
         #grid.options['rowdata']=None
         #grid.options['columndefs']=None
@@ -268,6 +522,7 @@ async def queries(queryname):
         grid.options['rowData']=None
         grid.update()
         chart.visible=False
+        columns =[]
         sqltext, db =[(i['querytext_sqlserver'], i['db'] ) for i in query_dict['queries']['query'] if i['queryname'] == sel_query.value][0]
         sqltext = sql_expand_inherited_parameters(sqltext=sqltext)        
 
@@ -277,17 +532,28 @@ async def queries(queryname):
             sqltext = sqltext.replace(p,val)
         if sqltext !='':
             try:
+                rows = []
                 start = timer()
-                result = await connect_db(db=db, sql=sqltext)  
+                if db=='restapi':
+                    result, msg = await tesconn.getTESList(sqltext.split(':')[0],sqltext.split(':')[1],sqltext.split(':')[2])
+                    if len(result) >0:
+                        columns = [column for column in result[0]._attrs]             
+                        for r in result:
+                            nr  ={}
+                            for c in columns:
+                                nr[c] = r[c]
+                            rows.append(nr)
+                            #rows.append(dict(zip(columns, r)))
+                else:
+                    result = await connect_db(db=db, sql=sqltext)  
+                    if len(result) >0:
+                        columns = [column[0] for column in result[0].cursor_description]             
+                        for r in result:
+                            rows.append(dict(zip(columns, r)))
                 end = timer()
                 elapse_time= end - start
                 print(f"{elapse_time:.01f} secs,{len(result)} rows.")
-                rows = []
-                if len(result) >0:
-                    columns = [column[0] for column in result[0].cursor_description]             
-                    for r in result:
-                        rows.append(dict(zip(columns, r)))
-                df = pandas.DataFrame.from_dict(rows)
+                #df = pandas.DataFrame.from_dict(rows)
             except Exception as ex:
                 print(ex)
                 rows=[]
@@ -428,7 +694,7 @@ async def queries(queryname):
             qry_button=ui.button('Get Data', on_click=getData(sel_query.value))
             lbl_count= ui.label('Rows: 0')
         sel_category = ui.select(label='Select Query Category',value=app.storage.user.get('category',None) ,options=category_list,on_change=lambda: update_query_list()).style('width:100px')
-        sel_query = ui.select(label='Select Query',value=queryname,options=sorted(set([i['queryname']  for i in query_dict['queries']['query'] if i.get('templatetype','') !='jinja' and i['db'].lower() in ['admiral','reporting']])), on_change=update_parameters_table)
+        sel_query = ui.select(label='Select Query',value=queryname,options=sorted(set([i['queryname']  for i in query_dict['queries']['query'] if i.get('templatetype','') !='jinja' and i['db'].lower() in ['admiral','reporting','restapi']])), on_change=update_parameters_table)
         #ui.separator()
         parameter_table = ui.grid()
         if sel_query.value:
@@ -446,7 +712,7 @@ async def queries(queryname):
             'rowData': [
             ],
         'rowSelection': 'single',
-        },auto_size_columns=False).style('height: 500px').on('cellClicked', lambda event: handleRowSelectedion(event=event)).on('firstDataRendered', lambda: grid.call_column_api_method('autoSizeAllColumns'))
+        },auto_size_columns=False).classes("h-screen").on('cellClicked', lambda event: handleRowSelectedion(event=event)).on('firstDataRendered', lambda: grid.call_column_api_method('autoSizeAllColumns'))
         #ui.button('AutoSize Columns', on_click=lambda: grid.call_column_api_method('autoSizeAllColumns'))
     #with ui.expansion("Chart",value=True).classes('w-full') as chart_expansion:        
     #    chart_expansion.open()
@@ -484,7 +750,7 @@ async def queries(queryname):
         app.storage.user[f'{sel_query.value}:x-axis'] = x_axis.value
         app.storage.user[f'{sel_query.value}:chart-function'] = chart_function.value
         app.storage.user[f'{sel_query.value}:y-axis'] = y1_axis.value
-        pivot_df = pandas.pivot_table(index=x_axis.value, columns=y1_axis, values='new_results_reported', aggfunc='sum')
+        #pivot_df = pandas.pivot_table(rows, index=x_axis.value, columns=y1_axis.value, values=None, aggfunc='sum')
         if seriesdata.value:
             series= set([row[seriesdata.value] for row in rows])
         x1 = sorted(list(set([i[x_axis.value ] or '' for i in rows])))
@@ -527,6 +793,37 @@ async def queries(queryname):
         ui.label('SYNERTECH TIDAL ANALYTICS')
     await getData(queryname)
     update()
+
+
+@ui.page('/testpage',response_timeout=999,reconnect_timeout=10)
+async def testpage():
+    pagelayout()
+    async def run_command(command: str) -> None:
+        """Run a command in the background and display the output in the pre-created dialog."""
+        import shlex
+        import os
+        dialog.open()
+        result.content = ''
+        command = command.replace('python3', sys.executable)  # NOTE replace with machine-independent Python path (#1240)
+        process = await asyncio.create_subprocess_exec(
+            *shlex.split(command, posix="win" not in sys.platform.lower()),
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT,
+            cwd=os.path.dirname(os.path.abspath(__file__))
+        )
+        # NOTE we need to read the output in chunks, otherwise the process will block
+        output = ''
+        while True:
+            new = await process.stdout.read(1024)
+            if not new:
+                break
+            output += new.decode()
+            # NOTE the content of the markdown element is replaced every time we have new output
+            result.content = f'```\n{output}\n```'
+
+    with ui.dialog() as dialog, ui.card():
+        result = ui.markdown()
+
+    ui.button('python3 hello.py', on_click=lambda: run_command('python3 hello.py')).props('no-caps')
 
 
 ui.run(port=7777, reload=False, storage_secret='synertech2')

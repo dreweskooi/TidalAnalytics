@@ -1,0 +1,868 @@
+AddJobDependency = """
+<tes:JobDependency xmlns:tes="http://www.tidalsoftware.com/client/tesservlet">
+    <tes:type>1</tes:type>
+    <tes:jobid>#jobid</tes:jobid>
+    <tes:depjobid>#depjobid</tes:depjobid>
+    <tes:logic>#logic</tes:logic>
+    <tes:ignoredep>Y</tes:ignoredep>
+    <tes:depjobname>#depjobname</tes:depjobname>
+    <tes:depjobparent>#depjobparent</tes:depjobparent>
+    <tes:operator>#operator</tes:operator>
+    <tes:status>#status</tes:status>
+    <tes:ingroup>#ingroup</tes:ingroup>
+</tes:JobDependency>
+"""
+
+FileDependency = """
+<tes:FileDependency xmlns:tes="http://www.tidalsoftware.com/client/tesservlet">
+            <tes:jobid>#jobid</tes:jobid>
+            <tes:type>2</tes:type>
+            <tes:inheritagent>Y</tes:inheritagent>
+            <tes:operator>#operator</tes:operator>
+            <tes:status>#status</tes:status>
+			<tes:filetype>#condition</tes:filetype>
+            <tes:filename>#filename</tes:filename>
+            <tes:fileextent>#fileextent</tes:fileextent>
+		</tes:FileDependency>	
+"""
+Tag = """
+<tes:tag xmlns:tes="http://www.tidalsoftware.com/client/tesservlet">
+<tes:name>{name}</tes:name>
+<tes:ownerid>{ownerid}</tes:ownerid>
+<tes:pub>Y</tes:pub>
+<tes:active>Y</tes:active>
+<tes:data><tag><type>2</type></tag></tes:data>
+<tes:type>2</tes:type>
+<tes:typename>Filter</tes:typename>
+<tes:childtags/>
+</tes:tag>"""
+
+WorkGroupRunUser = """
+<tes:WorkGroupRunUser xmlns:tes="http://www.tidalsoftware.com/client/tesservlet">
+    <tes:domain></tes:domain>
+    <tes:isgroup></tes:isgroup>
+    <tes:nodeid>1</tes:nodeid>
+    <tes:equivalentuserid>{userid}</tes:equivalentuserid>
+    <tes:nodeid>0</tes:nodeid>
+    <tes:usertableid>{userid}</tes:usertableid>
+    <tes:usertablename></tes:usertablename>
+    <tes:workgroupid>{ownerid}</tes:workgroupid>
+</tes:WorkGroupRunUser>
+"""
+
+FTPJob="""
+<FTPJob xmlns:tes="http://www.tidalsoftware.com/client/tesservlet">
+	<active></active>
+	<agentid></agentid>
+	<agentlistid></agentlistid>
+	<alias></alias>
+	<allowrerun></allowrerun>
+	<allowunscheduled></allowunscheduled>
+	<alternateoutputfile></alternateoutputfile>
+	<anonymous></anonymous>
+	<asciiformat></asciiformat>
+	<breachfromtime></breachfromtime>
+	<breachfromtimeasstring></breachfromtimeasstring>
+	<breachoffset></breachoffset>
+	<breachuntiltime></breachuntiltime>
+	<breachuntiltimeasstring></breachuntiltimeasstring>
+	<businessunitid></businessunitid>
+	<cachelastchangetime></cachelastchangetime>
+	<calendarfromdate></calendarfromdate>
+	<calendarfromdateasstring></calendarfromdateasstring>
+	<calendarid></calendarid>
+	<calendaroffset></calendaroffset>
+	<calendaruntildate></calendaruntildate>
+	<calendaruntildateasstring></calendaruntildateasstring>
+	<childrencount></childrencount>
+	<clientcachelastchangetime></clientcachelastchangetime>
+	<command></command>
+	<compounddependencies></compounddependencies>
+	<concurrency></concurrency>
+	<createtime></createtime>
+	<critical></critical>
+	<customstarttimes></customstarttimes>
+	<dependencylogic></dependencylogic>
+	<dirty></dirty>
+	<disablecarryover></disablecarryover>
+	<durationestimated></durationestimated>
+	<durationmaximum></durationmaximum>
+	<durationminimum></durationminimum>
+	<encryptioncypherselection></encryptioncypherselection>
+	<environmentfile></environmentfile>
+	<estimatedmethod></estimatedmethod>
+	<excludeabnormalduration></excludeabnormalduration>
+	<exitcodenormaloperator></exitcodenormaloperator>
+	<filename></filename>
+	<forcererun></forcererun>
+	<ftphost></ftphost>
+	<ftpoperation></ftpoperation>
+	<ftpparameters></ftpparameters>
+	<ftpprotocol></ftpprotocol>
+	<ftpuserid></ftpuserid>
+	<fullpath></fullpath>
+	<hasparent></hasparent>
+	<predecessorsvalue></predecessorsvalue>
+	<successorsvalue></successorsvalue>
+	<historyretention></historyretention>
+	<id></id>
+	<imageid></imageid>
+	<imagelinkid></imagelinkid>
+	<imagelumt></imagelumt>
+	<imagetype></imagetype>
+	<inheritagent></inheritagent>
+	<inheritcalendar></inheritcalendar>
+	<inheritoptions></inheritoptions>
+	<inheritrepeat></inheritrepeat>
+	<inherittimewindow></inherittimewindow>
+	<jobclassid></jobclassid>
+	<jobclassimageid></jobclassimageid>
+	<jobclassimagelumt></jobclassimagelumt>
+	<jobclassimagetype></jobclassimagetype>
+	<jobdeplist></jobdeplist>
+	<jobdetailid></jobdetailid>
+	<lastchangetime></lastchangetime>
+	<lastusermodifiedtime></lastusermodifiedtime>
+	<localpath></localpath>
+	<localuserid></localuserid>
+	<name></name>
+	<nearoutage></nearoutage>
+	<newfilename></newfilename>
+	<normalexitfromrange></normalexitfromrange>
+	<normalexittorange></normalexittorange>
+	<notes></notes>
+	<isnotes></isnotes>
+	<ownerid></ownerid>
+	<parameters></parameters>
+	<parentactive></parentactive>
+	<parentid></parentid>
+	<parentname></parentname>
+	<passphrase></passphrase>
+	<priority></priority>
+	<privatekeylocation></privatekeylocation>
+	<quote></quote>
+	<recordname></recordname>
+	<remotepath></remotepath>
+	<repeat></repeat>
+	<repeatcount></repeatcount>
+	<repeatinterval></repeatinterval>
+	<replacefiles></replacefiles>
+	<rerundependency></rerundependency>
+	<riskfromtime></riskfromtime>
+	<riskfromtimeasstring></riskfromtimeasstring>
+	<riskoffset></riskoffset>
+	<riskuntiltime></riskuntiltime>
+	<riskuntiltimeasstring></riskuntiltimeasstring>
+	<runbook></runbook>
+	<isrunbook></isrunbook>
+	<runuserid></runuserid>
+	<saveoutputoption></saveoutputoption>
+	<serviceid></serviceid>
+	<timewindowfromtime></timewindowfromtime>
+	<timewindowfromtimeasstring></timewindowfromtimeasstring>
+	<timewindowoption></timewindowoption>
+	<timewindowuntiltime></timewindowuntiltime>
+	<timewindowuntiltimeasstring></timewindowuntiltimeasstring>
+	<trackingcommand></trackingcommand>
+	<trackingmethod></trackingmethod>
+	<type></type>
+	<unixprofile></unixprofile>
+	<userpasswordauthentication></userpasswordauthentication>
+	<variables></variables>
+	<waitOperator></waitOperator>
+	<workingdirectory></workingdirectory>
+</FTPJob>
+"""
+AssignJobToTag="""
+<tes:Tag.assigntagstojob xmlns:tes="http://www.tidalsoftware.com/client/tesservlet">
+<tags>{tag}</tags>
+<dataAlias>{alias}</dataAlias>
+<tableId>13</tableId>
+</tes:Tag.assigntagstojob>"""
+
+JobGroup = """
+<jobgroup xmlns:tes="http://www.tidalsoftware.com/client/tesservlet">
+	<active></active>
+	<agentid></agentid>
+	<agentlistid></agentlistid>
+	<alias></alias>
+	<allowrerun></allowrerun>
+	<allowunscheduled></allowunscheduled>
+	<alternateoutputfile></alternateoutputfile>
+	<breachfromtime></breachfromtime>
+	<breachfromtimeasstring></breachfromtimeasstring>
+	<breachoffset></breachoffset>
+	<breachuntiltime></breachuntiltime>
+	<breachuntiltimeasstring></breachuntiltimeasstring>
+	<businessunitid></businessunitid>
+	<cachelastchangetime></cachelastchangetime>
+	<calendarfromdate></calendarfromdate>
+	<calendarfromdateasstring></calendarfromdateasstring>
+	<calendarid></calendarid>
+	<calendaroffset></calendaroffset>
+	<calendaruntildate></calendaruntildate>
+	<calendaruntildateasstring></calendaruntildateasstring>
+	<childrencount></childrencount>
+	<clientcachelastchangetime></clientcachelastchangetime>
+	<command></command>
+	<compounddependencies></compounddependencies>
+	<concurrency></concurrency>
+	<createtime></createtime>
+	<critical></critical>
+	<customstarttimes></customstarttimes>
+	<data></data>
+	<dependencylogic></dependencylogic>
+	<dirty></dirty>
+	<disablecarryover></disablecarryover>
+	<durationestimated></durationestimated>
+	<durationmaximum></durationmaximum>
+	<durationminimum></durationminimum>
+	<environmentfile></environmentfile>
+	<estimatedmethod></estimatedmethod>
+	<excludeabnormalduration></excludeabnormalduration>
+	<exitcodenormaloperator></exitcodenormaloperator>
+	<forcererun></forcererun>
+	<fullpath></fullpath>
+	<hasparent></hasparent>
+	<predecessorsvalue></predecessorsvalue>
+	<successorsvalue></successorsvalue>
+	<historyretention></historyretention>
+	<id></id>
+	<imageid></imageid>
+	<imagelinkid></imagelinkid>
+	<imagelumt></imagelumt>
+	<imagetype></imagetype>
+	<inheritagent></inheritagent>
+	<inheritcalendar></inheritcalendar>
+	<inheritoptions></inheritoptions>
+	<inheritrepeat></inheritrepeat>
+	<inherittimewindow></inherittimewindow>
+	<jobclassid></jobclassid>
+	<jobclassimageid></jobclassimageid>
+	<jobclassimagelumt></jobclassimagelumt>
+	<jobclassimagetype></jobclassimagetype>
+	<jobdeplist></jobdeplist>
+	<jobdetailid></jobdetailid>
+	<lastchangetime></lastchangetime>
+	<lastusermodifiedtime></lastusermodifiedtime>
+	<mode></mode>
+	<name></name>
+	<nearoutage></nearoutage>
+	<normalexitfromrange></normalexitfromrange>
+	<normalexittorange></normalexittorange>
+	<notes></notes>
+	<isnotes></isnotes>
+	<onterminatereqabortactiveflag></onterminatereqabortactiveflag>
+	<onterminatereqignoreflag></onterminatereqignoreflag>
+	<onterminatereqterminateparentflag></onterminatereqterminateparentflag>
+	<ownerid></ownerid>
+	<parameters></parameters>
+	<parentactive></parentactive>
+	<parentid></parentid>
+	<parentname></parentname>
+	<priority></priority>
+	<recordname></recordname>
+	<repeat></repeat>
+	<repeatcount></repeatcount>
+	<repeatinterval></repeatinterval>
+	<rerundependency></rerundependency>
+	<riskfromtime></riskfromtime>
+	<riskfromtimeasstring></riskfromtimeasstring>
+	<riskoffset></riskoffset>
+	<riskuntiltime></riskuntiltime>
+	<riskuntiltimeasstring></riskuntiltimeasstring>
+	<runbook></runbook>
+	<isrunbook></isrunbook>
+	<runuserid></runuserid>
+	<saveoutputoption></saveoutputoption>
+	<serviceid></serviceid>
+	<sharedownerids></sharedownerids>
+	<sharedowners></sharedowners>
+	<terminateparentonabnormalflag></terminateparentonabnormalflag>
+	<terminateparentonabortflag></terminateparentonabortflag>
+	<terminateparentonerrorflag></terminateparentonerrorflag>
+	<timewindowfromtime></timewindowfromtime>
+	<timewindowfromtimeasstring></timewindowfromtimeasstring>
+	<timewindowoption></timewindowoption>
+	<timewindowuntiltime></timewindowuntiltime>
+	<timewindowuntiltimeasstring></timewindowuntiltimeasstring>
+	<trackingcommand></trackingcommand>
+	<trackingmethod></trackingmethod>
+	<transactionid></transactionid>
+	<type></type>
+	<unixprofile></unixprofile>
+	<variables></variables>
+	<waitOperator></waitOperator>
+	<workingdirectory></workingdirectory>
+</jobgroup>
+"""
+Job ="""
+<job xmlns:tes="http://www.tidalsoftware.com/client/tesservlet">
+    <id>0</id>
+    <usepasswordwinjob>SC</usepasswordwinjob>
+    <usePasswordWinJob>SC</usePasswordWinJob>
+	<name></name>
+	<type>1</type>
+	<active>N</active>
+	<ownerid>1</ownerid>
+	<command xsi:nil="true"/>
+    <parameters xsi:nil="true"/>
+	<runuserid xsi:nil="true"/>
+	<agentid xsi:nil="true"/>
+	<saveoutputoption>Y</saveoutputoption>
+	<normalexitfromrange>0</normalexitfromrange>
+	<inheritoptions>Y</inheritoptions>
+	<parentid xsi:nil="true"/>
+	<repeatcount>0</repeatcount>
+	<nearoutage>3</nearoutage>
+	<allowunscheduled>Y</allowunscheduled>
+	<exitcodenormaloperator>1</exitcodenormaloperator>
+	<description xsi:nil="true"/>
+	<priority>50</priority>
+	<concurrency>1</concurrency>
+	<repeatinterval>0</repeatinterval>
+	<childrencount>0</childrencount>
+	<estimatedmethod>1</estimatedmethod>
+	<parentname xsi:nil="true"/>
+	<isnotes>false</isnotes>
+	<notes></notes>
+	<timewindowoption>0</timewindowoption>
+	<dependencylogic>1</dependencylogic>
+	<inheritagent xsi:nil="true"/>
+	<normalexittorange>0</normalexittorange>
+	<isrunbook>false</isrunbook>
+	<repeat xsi:nil="true"/>
+	<trackingmethod>1</trackingmethod>
+	<waitOperator>N</waitOperator>
+	<disablecarryover>0</disablecarryover>
+	<dirty xsi:nil="true"/>
+	<durationestimated>60</durationestimated>
+	<durationminimum>60</durationminimum>
+	<inheritcalendar>Y</inheritcalendar>
+	<alias xsi:nil="true"/>
+	<historyretention>30</historyretention>
+	<calendaroffset>0</calendaroffset>
+	<excludeabnormalduration>4</excludeabnormalduration>
+	<allowrerun>Y</allowrerun>
+	<rerundependency>N</rerundependency>
+	<savelogonly>N</savelogonly>
+	<durationmaximum>60</durationmaximum>
+	<inherittimewindow>N</inherittimewindow>
+	<inheritrepeat>N</inheritrepeat>
+    <riskoffset>0</riskoffset>
+    <unixprofile>0</unixprofile>
+    <critical>N</critical>
+    <usepasswordwinjob>N</usepasswordwinjob>
+    <extendedinfo><agent><UsePasswordWinJob>SC</UsePasswordWinJob></agent></extendedinfo>
+    <tags></tags>
+</job>
+"""
+JDEJOB="""
+<jdejob>
+	<properties/>
+	<parameters/>
+	<ubename>{ube}</ubename>
+	<ubeversion>{version}</ubeversion>
+	<ubetitle>{title}</ubetitle>
+	<printers/>
+	<batchserver>usbdeos985</batchserver>
+	<queue>QBATCH</queue>
+	<debuglevel>6</debuglevel>
+	<objectpoll>5</objectpoll>
+	<objectpollchecked/>
+	<eventtag></eventtag>
+	<pdf>Y</pdf>
+	<nameonly/>
+	<summary/>
+	<csv/>
+	<jdelog/>
+	<jdedebuglog/>
+	<folder/>
+	<osacheckbox>N</osacheckbox>
+	<osaclass/>
+	<delete/>
+	<printnow/>
+	<disabledsoverride/>
+	<dataselections/>
+	<processingoptions/>
+</jdejob>
+"""
+INFORMATICAJOBS ="""
+<jobdef>
+	<folder>
+		<var.compound>{folder}</var.compound>
+	</folder>
+	<workflow>
+		<var.compound>{workflow}</var.compound>
+	</workflow>
+	<showtasks>y</showtasks>
+	<exit_method>0</exit_method>
+	<terminated_isfinal></terminated_isfinal>
+	<paramfilename>
+		<var.compound></var.compound>
+	</paramfilename>
+	<params>
+		<WORKFLOWLOGDIR>
+			<var.compound></var.compound>
+		</WORKFLOWLOGDIR>
+		<SESSIONLOGDIR>
+			<var.compound></var.compound>
+		</SESSIONLOGDIR>
+		<SCANFOR_SESSIONLOG>
+			<var.compound></var.compound>
+		</SCANFOR_SESSIONLOG>
+		<SESSIONLOG_ONFAILURE>
+			<var.compound></var.compound>
+		</SESSIONLOG_ONFAILURE>
+		<UNIX_OS_PROFILE>
+			<var.compound></var.compound>
+		</UNIX_OS_PROFILE>
+		<SERVER_NAME>
+			<var.compound></var.compound>
+		</SERVER_NAME>
+		<SERVER_PORT>
+			<var.compound></var.compound>
+		</SERVER_PORT>
+	</params>
+	<cmd>{workflow}@{folder}</cmd>
+</jobdef>
+"""
+
+PEOPLESOFTJOB ="""
+<peoplesoftjob>
+	<properties/>
+	<parameters/>
+	<proxyProperties/>
+	<steps>
+		<step psjob_step="1">
+			<distributions/>
+			<psjob_step>1</psjob_step>
+			<psjob_procname>{processname}</psjob_procname>
+			<descr>{description}</descr>
+			<psjob_proctype>{processtype}</psjob_proctype>
+			<psjob_componentname>{componentname}</psjob_componentname>
+			<psjob_always>No</psjob_always>
+			<psjob_runcontrol>{runcontrol}</psjob_runcontrol>
+			<outputtype>File</outputtype>
+			<psjob_output>6</psjob_output>
+			<outputformat>PDF</outputformat>
+			<psjob_outfmt>2</psjob_outfmt>
+			<psjob_outdest>%Log/Output Directory%</psjob_outdest>
+			<psjob_userdistributionid/>
+			<outdest_over>N</outdest_over>
+			<psjob_server/>
+			<psjob_saoutput/>
+			<psjob_runmask/>
+			<psjob_runvalsui>
+				<element>
+					<key xsi:type="xs:string" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">RID</key>
+					<value xsi:type="xs:string" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">{PRCSRUNCNTL_RUN_CNTL_ID}</value>
+				</element>
+				<element>
+					<key xsi:type="xs:string" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">URL</key>
+					<value xsi:type="xs:string" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">http://usrcfin.bncollege.com/psp/ps/EMPLOYEE/ERP/c/MANAGE_BILLING_UTILITIES.RUN_BI_ACCRUAL.GBL</value>
+				</element>
+				<element>
+					<key xsi:type="xs:string" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">MKT</key>
+					<value xsi:type="xs:string" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">GBL</value>
+				</element>
+				<element>
+					<key xsi:type="xs:string" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">PNL</key>
+					<value xsi:type="xs:string" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Accrue Unbilled Revenue : Load GL - Unbilled</value>
+				</element>
+				<element>
+					<key xsi:type="xs:string" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">RCTL</key>
+					<value xsi:type="xs:string" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">c/MANAGE_BILLING_UTILITIES.RUN_BI_ACCRUAL.GBL</value>
+				</element>
+			</psjob_runvalsui>
+			<psjob_runvals>
+				<param name="MKT">
+					<var.compound>
+                          GBL
+              </var.compound>
+				</param>
+				<param name="RID">
+					<var.compound>
+                            {PRCSRUNCNTL_RUN_CNTL_ID}
+              </var.compound>
+				</param>
+				<param name="URL">
+					<var.compound>
+              </var.compound>
+				</param>
+				<param name="PNL">
+					<var.compound>
+              </var.compound>
+				</param>
+              <param name="RCTL">
+					<var.compound>
+              </var.compound>
+				</param>
+			</psjob_runvals>
+			<psjob_extrunvals/>
+			<mkt>GBL</mkt>
+			<longdescr/>
+			<parmlist> -CT %%DBTYPE%% -CD %%DBNAME%% -CO "%%OPRID%%" -CP %%OPRPSWD%% -R %%RUNCNTLID%% -I %%INSTANCE%% -AI %%PRCSNAME%% -OT %%OUTDESTTYPE%% -FP "%%OUTDEST%%" -OF %%OUTDESTFORMAT%%</parmlist>
+			<rctable1/>
+			<rctable2>PRCSRUNCNTL</rctable2>
+			<psjob_instance/>
+			<psjob_runstatus/>
+			<psjob_cmdline/>
+			<psjob_runstart/>
+			<psjob_runfinish/>
+			<psjob_parmlist/>
+		</step>
+	</steps>
+</peoplesoftjob>
+"""
+PEOPLESOFTJOB_OLD="""
+<jobdef>
+	<connusr>
+		<var.username>3</var.username>
+		<var.value/>
+	</connusr>
+	<password>
+		<var.password>3</var.password>
+		<var.value/>
+	</password>
+	<conndomain>
+		<var.conndomain>3</var.conndomain>
+		<var.value/>
+	</conndomain>
+	<principal>
+		<var.principal>3</var.principal>
+		<var.value/>
+	</principal>
+	<keytab>
+		<var.keytab>3</var.keytab>
+		<var.value/>
+	</keytab>
+	<userid/>
+	<username/>
+	<userdomain/>
+	<properties/>
+	<parameters/>
+	<steps>
+		<step psjob_step="1">
+			<psjob_procname>
+               {processname}
+              </psjob_procname>
+			<descr>
+              {description}
+              </descr>
+			<psjob_proctype>
+				{processtype}
+            </psjob_proctype>
+			<psjob_componentname>
+			{componentname}
+              </psjob_componentname>
+			<psjob_always>0</psjob_always>
+			<psjob_runcontrol>
+              {runcontrol}
+              </psjob_runcontrol>
+			<outputtype>Web</outputtype>
+			<psjob_output>6</psjob_output>
+			<outputformat>PDF</outputformat>
+			<parent_stepsaved/>
+			<psjob_outfmt>2</psjob_outfmt>
+			<psjob_outdest></psjob_outdest>
+			<outdest_over>N</outdest_over>
+			<psjob_server/>
+			<psjob_saoutput>
+            </psjob_saoutput>
+			<psjob_runmask/>
+			<psjob_runvals>
+				<param name="MKT">
+					<var.compound>
+                          GBL
+              </var.compound>
+				</param>
+				<param name="RID">
+					<var.compound>
+                            {PRCSRUNCNTL_RUN_CNTL_ID}
+              </var.compound>
+				</param>
+				<param name="URL">
+					<var.compound>
+              </var.compound>
+				</param>
+				<param name="PNL">
+					<var.compound>
+              </var.compound>
+				</param>
+              <param name="RCTL">
+					<var.compound>
+              </var.compound>
+				</param>
+			</psjob_runvals>
+			<psjob_extrunvals/>
+			<longdescr>BlueHouse Converted Job
+			</longdescr>
+			<parmlist>
+			</parmlist>
+			<rctable1/>
+			<rctable2>PRCSRUNCNTL</rctable2>
+			<psjob_instance/>
+			<psjob_runstatus/>
+			<psjob_cmdline/>
+			<psjob_runstart/>
+			<psjob_runfinish/>
+			<psjob_parmlist/>
+		</step>
+	</steps>
+	<cmd/>
+</jobdef>
+ 
+"""
+User="""
+<tes:Users xmlns:tes="http://www.tidalsoftware.com/client/tesservlet">
+	<tes:description></tes:description>
+	<tes:domain>{domain}</tes:domain>
+	<tes:emailaddress></tes:emailaddress>
+	<tes:emailtype>0</tes:emailtype>
+	<tes:endtime></tes:endtime>
+	<tes:fullname>{name}</tes:fullname>
+	<tes:id>{id}</tes:id>
+	<tes:name>{name}</tes:name>
+    <tes:securitypolicyid>{sp}</tes:securitypolicyid>
+	<tes:superuser>{superuser}</tes:superuser>
+</tes:Users>
+"""
+JobClass ="""
+<tes:JobClass xmlns:tes="http://www.tidalsoftware.com/client/tesservlet">
+	<tes:description>{description}</tes:description>
+	<tes:name>{name}</tes:name>
+</tes:JobClass>"""
+BusinessUnit = """
+<tes:BusinessUnit xmlns:tes="http://www.tidalsoftware.com/client/tesservlet">
+	<tes:cachelastchangetime></tes:cachelastchangetime>
+	<tes:clientcachelastchangetime></tes:clientcachelastchangetime>
+	<tes:indsttzperiod>N</tes:indsttzperiod>
+	<tes:dsttzoffset>0</tes:dsttzoffset>
+	<tes:fullname></tes:fullname>
+	<tes:id>{id}</tes:id>
+	<tes:mastertzoffset>18000</tes:mastertzoffset>
+	<tes:name>{name}</tes:name>
+	<tes:recordname></tes:recordname>
+	<tes:timezoneid>{timezoneid}</tes:timezoneid>
+	<tes:tzname>Eastern Standard Time</tes:tzname>
+	<tes:utctzoffset>-18000</tes:utctzoffset>
+</tes:BusinessUnit>
+"""
+UnixNode="""
+		<tes:UnixNode>
+			<tes:runuserdomain>tidalsoft</tes:runuserdomain>
+			<tes:port>5912</tes:port>
+			<tes:machine>{name}</tes:machine>
+			<tes:joblimit>10</tes:joblimit>
+			<tes:type>6</tes:type>
+			<tes:ostype>1</tes:ostype>
+			<tes:name>{name}</tes:name>
+			<tes:active>N</tes:active>
+		</tes:UnixNode>
+"""
+
+EventsJobRerun="""
+	<tes:eventsjob xmlns:tes="http://www.tidalsoftware.com/client/tesservlet">
+		<tes:hasactions>Y</tes:hasactions>
+		<tes:id>1</tes:id>
+		<tes:active>Y</tes:active>
+		<tes:alljobs>N</tes:alljobs>
+        <tes:eventactioncount>0</tes:eventactioncount>
+		<tes:eventcalendarid>0</tes:eventcalendarid>
+		<tes:eventtype>1</tes:eventtype>
+		<tes:eventtypename>Job</tes:eventtypename>
+		<tes:jobcontrol>5</tes:jobcontrol>
+		<tes:maxreruns>{maxreruns}</tes:maxreruns>
+		<tes:monitor>1</tes:monitor>
+		<tes:name>{name}</tes:name>
+		<tes:ownerid>{ownerid}</tes:ownerid>
+		<tes:pub>Y</tes:pub>
+		<tes:repeatinterval>{repeatinterval}</tes:repeatinterval>
+		<tes:triggerid>16</tes:triggerid>
+		<tes:connectionactive>N</tes:connectionactive>
+		<tes:nodetype>0</tes:nodetype>
+		<tes:ostype>0</tes:ostype>
+	</tes:eventsjob>
+
+"""
+Events="""
+<tes:Events xmlns:tes="http://www.tidalsoftware.com/client/tesservlet">
+    <tes:active>Y</tes:active>
+	<tes:alljobs>N</tes:alljobs>
+	<tes:description>{name}</tes:description>
+	<tes:eventtype>1</tes:eventtype>
+	<tes:name>{name}</tes:name>
+	<tes:ownerid>{ownerid}</tes:ownerid>
+	<tes:pub>Y</tes:pub>
+	<tes:triggerid>{triggerid}</tes:triggerid>
+</tes:Events>		
+"""
+EventActionJoin="""
+<tes:eventactionjoin xmlns:tes="http://www.tidalsoftware.com/client/tesservlet">
+    <tes:actionorder>1</tes:actionorder>
+    <tes:jobcontrol>5</tes:jobcontrol>
+    <tes:rerunmax>1</tes:rerunmax>
+    <tes:triggerid>{triggerid}</tes:triggerid>
+</tes:eventactionjoin>
+"""
+EventsJob="""
+<tes:eventsjob xmlns:tes="http://www.tidalsoftware.com/client/tesservlet">
+    <tes:hasactions>Y</tes:hasactions>
+    <tes:active>Y</tes:active>
+    <tes:alljobs>N</tes:alljobs>
+    <tes:description></tes:description>
+    <tes:eventtype>1</tes:eventtype>
+    <tes:jobcontrol>5</tes:jobcontrol>
+    <tes:maxreruns>{maxreruns}</tes:maxreruns>
+    <tes:name>{name}</tes:name>
+    <tes:ownerid>{ownerid}</tes:ownerid>
+    <tes:pub>Y</tes:pub>
+    <tes:repeatinterval>{repeatinterval}</tes:repeatinterval>
+    <tes:triggerid>2</tes:triggerid>
+</tes:eventsjob>
+"""
+EventJobJoin="""
+<tes:eventjobjoin xmlns:tes="http://www.tidalsoftware.com/client/tesservlet">
+<tes:actionorder>{actionorder}</tes:actionorder>
+<tes:eventtrigger>2</tes:eventtrigger>
+<tes:eventlevel>0</tes:eventlevel>
+<tes:jobid>{jobid}</tes:jobid>
+<tes:triggerid>{triggerid}</tes:triggerid>
+<tes:triggertype>{triggertype}</tes:triggertype>
+</tes:eventjobjoin>
+"""
+EventJobJoin_delete="""
+<tes:eventjobjoin xmlns:tes="http://www.tidalsoftware.com/client/tesservlet">
+<tes:id>{id}</tes:jobid>
+</tes:eventjobjoin>
+"""
+JDEServiceNode="""
+<?xml version="1.0" encoding="UTF-8"?>
+<entry xmlns="http://purl.org/atom/ns#">
+	<id>3</id>
+	<title>HTTP</title>
+	<tes:ServiceNode.create xmlns:tes="http://www.tidalsoftware.com/client/tesservlet">
+		<tes:servicenode xmlns:tes="http://www.tidalsoftware.com/client/tesservlet">
+			<tes:name>JDEC3ME_1</tes:name>
+			<tes:active>N</tes:active>
+			<tes:enabledjobs>0</tes:enabledjobs>
+			<tes:activejobs>0</tes:activejobs>
+			<tes:defaultconnectionid>0</tes:defaultconnectionid>
+			<tes:description>test</tes:description>
+			<tes:joblimit>10</tes:joblimit>
+			<tes:lastchangetime>2021-05-18T06:45:04-0400</tes:lastchangetime>
+			<tes:lastusermodifiedtime>2021-05-18T06:45:04-0400</tes:lastusermodifiedtime>
+			<tes:lastusermodifiedtimeasstring>20210518064504</tes:lastusermodifiedtimeasstring>
+			<tes:machine>usbdeos985.corp.inbaxalta.com</tes:machine>
+			<tes:ostype>12</tes:ostype>
+			<tes:parentid>-3</tes:parentid>
+			<tes:port>0</tes:port>
+			<tes:runuser>279</tes:runuser>
+			<tes:runusername>savejdeuser</tes:runusername>
+			<tes:type>11</tes:type>
+			<tes:nodeinfodup>
+				<connection>
+					<connusr>
+						<var.username>4</var.username>
+						<var.value/>
+					</connusr>
+					<password>
+						<var.password>4</var.password>
+						<var.value/>
+					</password>
+					<conndomain>
+						<var.conndomain>4</var.conndomain>
+						<var.value/>
+					</conndomain>
+					<principal>
+						<var.principal>4</var.principal>
+						<var.value/>
+					</principal>
+					<keytab>
+						<var.keytab>4</var.keytab>
+						<var.value/>
+					</keytab>
+					<params>
+						<DIRECTFILETYPES/>
+						<DEBUG>off</DEBUG>
+						<JDELAUNCHDELAY>100</JDELAUNCHDELAY>
+					</params>
+					<inst>18</inst>
+					<machine>usbdeos985.corp.inbaxalta.com</machine>
+					<server>usbdeos985.corp.inbaxalta.com</server>
+					<port>6017</port>
+					<pollint>25</pollint>
+					<host>usbdeos985</host>
+					<env>JBLLT</env>
+					<role>*ALL</role>
+					<printers/>
+					<queue>QBATCH</queue>
+					<printnow/>
+					<delete/>
+					<override>Y</override>
+					<logs/>
+					<debuglevel>0</debuglevel>
+					<outpath/>
+					<user>jdeuser</user>
+					<outputlimit/>
+				</connection>
+			</tes:nodeinfodup>
+			<tes:nodeinfo>
+				<connection>
+					<connusr>
+						<var.username>4</var.username>
+						<var.value/>
+					</connusr>
+					<password>
+						<var.password>4</var.password>
+						<var.value/>
+					</password>
+					<conndomain>
+						<var.conndomain>4</var.conndomain>
+						<var.value/>
+					</conndomain>
+					<principal>
+						<var.principal>4</var.principal>
+						<var.value/>
+					</principal>
+					<keytab>
+						<var.keytab>4</var.keytab>
+						<var.value/>
+					</keytab>
+					<params>
+						<DIRECTFILETYPES/>
+						<DEBUG>off</DEBUG>
+						<JDELAUNCHDELAY>100</JDELAUNCHDELAY>
+					</params>
+					<inst>18</inst>
+					<machine>usbdeos985.corp.inbaxalta.com</machine>
+					<server>usbdeos985.corp.inbaxalta.com</server>
+					<port>6017</port>
+					<pollint>25</pollint>
+					<host>usbdeos985</host>
+					<env>JBLLT</env>
+					<role>*ALL</role>
+					<printers/>
+					<queue>QBATCH</queue>
+					<printnow/>
+					<delete/>
+					<override>Y</override>
+					<logs/>
+					<debuglevel>0</debuglevel>
+					<outpath/>
+					<user>jdeuser</user>
+					<outputlimit/>
+				</connection>
+			</tes:nodeinfo>
+			<tes:serviceid>116</tes:serviceid>
+			<tes:serviceguid>{DDEB44A7-4377-41E9-AF20-BFA8177B1B9D}</tes:serviceguid>
+			<tes:servicename>JDEdwards</tes:servicename>
+			<tes:servicexml>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;yes&quot;?&gt; &lt;jdeconnection&gt; &lt;userid&gt;4&lt;/userid&gt; &lt;username&gt;jdeuser&lt;/username&gt; &lt;properties/&gt; &lt;parameters&gt; &lt;element&gt; &lt;key xsi:type=&quot;xs:string&quot; xmlns:xs=&quot;http://www.w3.org/2001/XMLSchema&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;DIRECTFILETYPES&lt;/key&gt; &lt;/element&gt; &lt;element&gt; &lt;key xsi:type=&quot;xs:string&quot; xmlns:xs=&quot;http://www.w3.org/2001/XMLSchema&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;DEBUG&lt;/key&gt; &lt;value xsi:type=&quot;xs:string&quot; xmlns:xs=&quot;http://www.w3.org/2001/XMLSchema&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;off&lt;/value&gt; &lt;/element&gt; &lt;element&gt; &lt;key xsi:type=&quot;xs:string&quot; xmlns:xs=&quot;http://www.w3.org/2001/XMLSchema&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;JDELAUNCHDELAY&lt;/key&gt; &lt;value xsi:type=&quot;xs:string&quot; xmlns:xs=&quot;http://www.w3.org/2001/XMLSchema&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;100&lt;/value&gt; &lt;/element&gt; &lt;/parameters&gt; &lt;inst&gt;18&lt;/inst&gt; &lt;server&gt;usbdeos985.corp.inbaxalta.com&lt;/server&gt; &lt;outputlimit/&gt; &lt;environment&gt;JBLLT&lt;/environment&gt; &lt;jdenetport&gt;6017&lt;/jdenetport&gt; &lt;objectpoll&gt;25&lt;/objectpoll&gt; &lt;role&gt;*ALL&lt;/role&gt; &lt;overrides&gt;Y&lt;/overrides&gt; &lt;batchserver&gt;usbdeos985&lt;/batchserver&gt; &lt;jdequeue&gt;QBATCH&lt;/jdequeue&gt; &lt;deletejobaftercomplete/&gt; &lt;includeoutput/&gt; &lt;debuglevel&gt;0&lt;/debuglevel&gt; &lt;printnow/&gt; &lt;printers/&gt; &lt;printqueuepath/&gt; &lt;useftp&gt;N&lt;/useftp&gt; &lt;/jdeconnection&gt;</tes:servicexml>
+			<tes:allowtokenrequests>N</tes:allowtokenrequests>
+			<tes:allowtokenforallusers>N</tes:allowtokenforallusers>
+		</tes:servicenode>
+	</tes:ServiceNode.create>
+</entry>
+
+"""

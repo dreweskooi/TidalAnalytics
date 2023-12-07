@@ -1,0 +1,40 @@
+{
+  "TRANSPORT": [],
+  "TRANSPORT_OBJECT": [
+    "Job",
+    "JobGroup",
+    "Dependencies",
+    "Events",
+    "Calendar",
+    "Actions"
+  ],
+  "DEVS": [
+    "DEV",
+    "QA",
+    "PROD",
+    "114",
+    "116"
+  ],
+  "FROM": "DEV",
+  "TO": "114",
+  "JobGroup": [
+  ],
+  "Job": [
+  ],
+  "Dependencies": [
+    [
+      "TRANSPORT_TEST",
+      "TRANSPORT_TEST_PATH"
+    ]
+  ],
+  "Calendar": [],
+  "Events": [
+    [
+      "ODS_RECONCILIATION_MX_MFT_MFT-RESET_CNTRS"
+    ],
+    [
+      "ODS_DIRECT_DEBIT_INSTRUCTION_MX_MFT_MFT-RESET_CNTRS"
+    ]
+  ],
+  "Actions": []
+}

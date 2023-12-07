@@ -4,3 +4,6 @@ nicegui
 xmltodict
 nicegui[highcharts]
 tortoise
+requests
+xml2obj
+pandas

@@ -1,0 +1,44 @@
+{
+  "AGENT": {
+    "*": "UNIX Agent",
+    "mssql": "stvsql01"
+  },
+  "AGENTLIST": {
+    "*": "UNIX.HG",
+    "ALG.HG": "ALG.HG"
+  },
+  "OWNER": {
+    "Schedulers": "Schedulers",
+    "kooi\\dkooi": "Schedulers",
+    "PROD": "Schedulers"
+  },
+  "CALENDAR": {
+    "*": "Daily"
+  },
+  "RUNTIMEUSER": {
+    "*": "tidal",
+    "infartu": "infauser",
+    "bh\\drewes": "ws1",
+    "sa": "sa",
+    "svcwla01": "tidal"
+  },
+  "FTPUSER": {
+    "sa": "sa"
+  },
+
+  "RESOURCE": {
+  },
+  "JOBCLASS": {},
+  "Job": {
+    "TRANSPORT_TEST": "TRANSPORT_TEST_PATH",
+    "JG1": "JG1_PATH"
+  },
+  "JobGroup": {
+    "TRANSPORT_TEST": "TRANSPORT_TEST_PATH",
+    "JG1": "JG1_PATH"
+  },
+  "TIMEZONE": {
+    "*": ""
+  },
+  "VARIABLE": {}
+}

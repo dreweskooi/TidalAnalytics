@@ -1,0 +1,14 @@
+{
+  "CM": {
+    "DEV": "http://localhost:8080/api/tes-6.5",
+    "UA": "http://192.168.23.114:8080/api/tes-6.5"
+  },
+  "CM_USER": {
+    "DEV": "kooi\\dkooi",
+    "UA": "syntech\\djkooi"
+  },
+  "CM_PASSWORD": {
+    "DEV": "dkk",
+    "UA": "SynTech56%^"
+  }
+}
